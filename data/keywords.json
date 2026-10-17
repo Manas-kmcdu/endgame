@@ -1,0 +1,20 @@
+{
+  "_note": "Starter list. Edit here or live from /admin. Syntax: word = exact, word* = prefix, *word* = contains, 'two words' = phrase. Leetspeak, repeated letters and spaced letters are normalized automatically.",
+  "contacts": true,
+  "block": [
+    "fuck*", "*motherfuck*", "bitch*", "asshole*", "bastard*", "slut*", "whore*", "cunt*",
+    "nigga*", "nigger*", "faggot*", "retard*",
+    "rape", "raped", "raping", "rapist",
+    "nude", "nudes", "sext*", "horny", "blowjob*", "handjob*", "dickpic*", "porn*",
+    "send pics", "send nudes", "show boobs",
+    "madarchod*", "behenchod*", "bhenchod*", "bhosd*", "chutiya*", "chutiye*", "gandu*", "gaandu*",
+    "randi*", "raand*", "lund", "lauda", "loda", "gaand"
+  ],
+  "mask": [
+    "mc", "bc", "shit", "shitty", "bullshit", "crap", "damn", "ass", "pussy", "dick", "cock",
+    "harami*", "kamina", "kamine", "saala", "saale", "kutta", "kutte", "bkl", "bsdk"
+  ],
+  "flag": [
+    "suicide", "suicidal", "kill myself", "end my life", "want to die", "self harm", "cut myself"
+  ]
+}

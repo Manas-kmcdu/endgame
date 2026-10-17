@@ -1,0 +1,18 @@
+[
+  { "id": "late-night", "name": "Late night", "line": "Overthinking, in good company", "hue": 262,
+    "prompts": ["What's keeping you up right now?", "Best thing that happened to you this week?", "What would you do with a free day in Delhi?", "Small thing that always cheers you up?"] },
+  { "id": "music", "name": "Music", "line": "Playlists, gigs, one song on repeat", "hue": 340,
+    "prompts": ["What's on repeat this week?", "Last gig or fest you went to?", "A song you'd defend to anyone?", "Which artist should everyone hear once?"] },
+  { "id": "screen", "name": "Screen", "line": "Films, anime, series, rewatches", "hue": 24,
+    "prompts": ["What are you watching right now?", "A rewatch you never get tired of?", "Most underrated thing you've seen?", "Anime or live action?"] },
+  { "id": "builders", "name": "Builders", "line": "Startups, side projects, half-built ideas", "hue": 168,
+    "prompts": ["What are you building, or want to build?", "Worst idea you were weirdly excited about?", "What problem on campus would you fix first?", "Tool you can't work without?"] },
+  { "id": "career", "name": "Career", "line": "Internships, placements, what next", "hue": 212,
+    "prompts": ["What are you aiming for after college?", "Best advice you got on internships?", "A skill you're picking up right now?", "Which role did you not know existed until recently?"] },
+  { "id": "hot-takes", "name": "Hot takes", "line": "Pick a side and defend it", "hue": 8,
+    "prompts": ["Most overrated thing on campus?", "Breakfast or dinner: which meal wins?", "Hill you'll die on?", "Metro or cab, and why?"] },
+  { "id": "chai", "name": "Chai & momos", "line": "Food runs, street eats, cafe finds", "hue": 46,
+    "prompts": ["Best momo spot near campus?", "Chai order, exactly?", "One place you keep going back to?", "Cheap meal worth the metro ride?"] },
+  { "id": "gaming", "name": "Gaming", "line": "Ranked, co-op, comfort games", "hue": 130,
+    "prompts": ["What are you playing right now?", "Comfort game you always return to?", "Mobile, console or PC?", "Best game you finished this year?"] }
+]

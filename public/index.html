@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Corridor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wall: #16141c;
+  --floor: #0c0b10;
+  --ink: #f2eee8;
+  --dim: #a39dae;
+  --line: #2b2833;
+  --lamp: #ffc66b;
+  --bad: #ff7a6b;
+  --r: 14px;
+  font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--wall); color: var(--ink); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+
+.screen { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ---------- corridor ---------- */
+#corridor { padding: 40px 20px 0; max-width: 1080px; margin: 0 auto; }
+#corridor h1 { font-size: clamp(44px, 9vw, 88px); line-height: .9; margin: 0 0 14px; font-weight: 800; letter-spacing: -0.035em; font-variation-settings: "opsz" 96; }
+#corridor .sub { color: var(--dim); max-width: 46ch; margin: 0 0 36px; line-height: 1.5; font-size: 17px; }
+.row { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 18px 14px; align-items: end; margin-top: auto; padding-bottom: 8px; }
+.slot { display: flex; flex-direction: column; }
+.door { position: relative; border: 0; padding: 0; background: radial-gradient(120% 90% at 50% 100%, hsl(40 100% 70% / calc(var(--lit) * .9)), transparent 70%), #0a090d; border-radius: 80px 80px 3px 3px; height: 250px; perspective: 700px; text-align: left; overflow: hidden; }
+.slot:nth-child(3n+2) .door { height: 270px; }
+.slot:nth-child(3n) .door { height: 235px; }
+.panel { position: absolute; inset: 0; border-radius: inherit; padding: 92px 14px 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+  background: linear-gradient(180deg, hsl(var(--h) 38% 34%), hsl(var(--h) 42% 22%));
+  box-shadow: inset 0 0 0 1px hsl(var(--h) 40% 50% / .35), inset 0 -40px 60px hsl(var(--h) 50% 12% / .6);
+  transform-origin: left center; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.panel::before { content: ""; position: absolute; top: 34px; left: 50%; width: 44px; height: 60px; transform: translateX(-50%); border-radius: 22px 22px 3px 3px; box-shadow: inset 0 0 0 1px hsl(var(--h) 40% 60% / .35); }
+.panel::after { content: ""; position: absolute; right: 12px; bottom: 44%; width: 9px; height: 9px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 8px hsl(40 100% 70% / .7); }
+.door:hover .panel, .door:focus-visible .panel { transform: rotateY(-24deg); }
+.door b { font-size: 21px; line-height: 1.05; font-weight: 700; letter-spacing: -0.01em; position: relative; }
+.door span { font-size: 13px; line-height: 1.3; color: hsl(var(--h) 30% 82%); position: relative; }
+.sill { height: 5px; margin-top: 3px; border-radius: 2px; background: var(--lamp); opacity: calc(.1 + var(--lit) * .9); box-shadow: 0 0 calc(var(--lit) * 22px) calc(var(--lit) * 4px) hsl(40 100% 65% / .55); transition: opacity .6s, box-shadow .6s; }
+.who { font-size: 13px; color: var(--dim); padding: 8px 2px 0; min-height: 28px; }
+.floor { height: 26px; margin: 0 -20px; background: linear-gradient(#0f0e14, var(--floor)); border-top: 1px solid var(--line); }
+@media (max-width: 520px) { .row { grid-template-columns: repeat(2, 1fr); } .door { height: 220px !important; } }
+
+/* ---------- sheet / dialogs ---------- */
+dialog { border: 1px solid var(--line); background: #1d1b25; color: var(--ink); border-radius: 20px; padding: 24px; width: min(420px, calc(100vw - 28px)); }
+dialog::backdrop { background: rgb(8 7 12 / .72); }
+dialog h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.02em; }
+dialog p { margin: 0 0 16px; color: var(--dim); line-height: 1.45; }
+label.f { display: block; font-size: 14px; color: var(--dim); margin: 14px 0 6px; }
+input[type=text], textarea { width: 100%; background: #12111a; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 16px; }
+textarea { resize: vertical; min-height: 64px; }
+ul.rules { margin: 0 0 6px; padding-left: 18px; color: var(--dim); line-height: 1.6; }
+.btns { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: #24212d; padding: 11px 18px; border-radius: 999px; font-weight: 600; }
+.btn:hover { background: #2c2937; }
+.btn.go { background: var(--lamp); color: #231a07; border-color: transparent; }
+.btn.go:hover { background: #ffd48b; }
+.btn.quiet { background: transparent; }
+.reasons { display: grid; gap: 8px; }
+.reasons label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.reasons input { accent-color: var(--lamp); }
+
+/* ---------- waiting ---------- */
+#wait, #gate, #banned, #kicked { align-items: flex-start; justify-content: center; padding: 20px; max-width: 560px; margin: 0 auto; }
+#wait h2, #gate h2, #banned h2, #kicked h2 { font-size: clamp(34px, 8vw, 56px); margin: 0 0 10px; letter-spacing: -0.03em; line-height: 1; font-weight: 800; }
+#wait p, #gate p, #banned p, #kicked p { color: var(--dim); font-size: 17px; line-height: 1.5; margin: 0 0 18px; }
+.knock { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--lamp); margin-right: 8px; animation: knock 1.1s infinite; }
+@keyframes knock { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+
+/* ---------- chat ---------- */
+#chat { height: 100dvh; min-height: 0; max-width: 720px; margin: 0 auto; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+.top { display: flex; align-items: center; gap: 10px; padding: 14px 16px 12px; }
+.top .t { flex: 1; min-width: 0; }
+.top h3 { margin: 0; font-size: 22px; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top small { color: var(--dim); font-size: 13px; }
+.top .clock { font-variant-numeric: tabular-nums; color: var(--dim); font-size: 15px; min-width: 42px; text-align: right; }
+.iconbtn { border: 1px solid var(--line); background: #1f1c27; border-radius: 999px; height: 40px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.iconbtn.sq { width: 40px; padding: 0; justify-content: center; }
+.iconbtn:hover { background: #2a2733; }
+.sillbar { height: 4px; background: #231f2b; }
+.sillbar i { display: block; height: 100%; width: 100%; background: var(--lamp); box-shadow: 0 0 14px 2px hsl(40 100% 65% / .5); transition: width .3s linear; }
+.sillbar.low i { animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .45; } }
+#log { flex: 1; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+.m { max-width: 80%; padding: 9px 13px; border-radius: 16px; line-height: 1.4; overflow-wrap: anywhere; font-size: 16px; }
+.m.them { align-self: flex-start; background: #262330; border-bottom-left-radius: 4px; }
+.m.me { align-self: flex-end; background: var(--lamp); color: #231a07; border-bottom-right-radius: 4px; }
+.sys { align-self: center; text-align: center; color: var(--dim); font-size: 14px; padding: 4px 10px; max-width: 90%; line-height: 1.4; }
+.sys.prompt { color: var(--ink); background: #1f1c27; border: 1px dashed #3a3646; border-radius: 12px; padding: 10px 14px; font-size: 16px; }
+.sys.warn { color: var(--bad); }
+.sys.care { color: var(--lamp); }
+#typing { height: 20px; padding: 0 18px; color: var(--dim); font-size: 13px; }
+.compose { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: #13121a; }
+.compose form { display: flex; gap: 8px; }
+.compose input { flex: 1; min-width: 0; }
+.compose .under { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 13px; color: var(--dim); }
+.link { background: none; border: 0; padding: 4px 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.link.hot { color: var(--lamp); font-weight: 600; }
+#after { display: flex; gap: 10px; flex-wrap: wrap; }
+
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #2a2733; border: 1px solid #3a3646; padding: 10px 16px; border-radius: 12px; max-width: min(90vw, 440px); z-index: 10; font-size: 15px; line-height: 1.4; }
+#offline { position: fixed; top: 0; left: 0; right: 0; background: var(--bad); color: #2a0c07; text-align: center; padding: 6px; font-size: 14px; font-weight: 600; z-index: 20; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="offline" hidden>Connection lost. Reconnecting…</div>
+
+<main>
+  <section id="gate" class="screen" hidden>
+    <h2>Enter the code</h2>
+    <p>Corridor is for Delhi University students. Use the invite code you were given.</p>
+    <form id="gateForm" style="width:100%"><input type="text" id="codeIn" placeholder="Invite code" autocomplete="off"><div class="btns"><button class="btn go">Continue</button></div></form>
+  </section>
+
+  <section id="corridor" class="screen" hidden>
+    <h1>Corridor</h1>
+    <p class="sub">Pick a door. You'll be matched with someone inside for a few minutes of text. Skip anytime.</p>
+    <div class="row" id="doors"></div>
+    <div class="floor"></div>
+  </section>
+
+  <section id="wait" class="screen" hidden>
+    <h2><span class="knock"></span><span id="waitName">Knocking</span></h2>
+    <p id="waitMsg">Looking for someone inside.</p>
+    <div id="waitAlt" class="btns" style="margin:0 0 12px"></div>
+    <div class="btns"><button class="btn quiet" id="waitLeave">Back to the corridor</button></div>
+  </section>
+
+  <section id="chat" class="screen" hidden>
+    <div class="top">
+      <div class="t"><h3 id="pName"></h3><small id="pDoor"></small></div>
+      <span class="clock" id="clock"></span>
+      <button class="iconbtn sq" id="btnReport" aria-label="Report">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4m0 0h11l-2 4 2 4H5"/></svg>
+      </button>
+      <button class="iconbtn" id="btnSkip">Skip</button>
+    </div>
+    <div class="sillbar" id="sillbar"><i id="sill"></i></div>
+    <div id="log" aria-live="polite"></div>
+    <div id="typing"></div>
+    <div class="compose">
+      <div id="live">
+        <form id="form" autocomplete="off">
+          <input type="text" id="input" placeholder="Say something" maxlength="300" enterkeyhint="send">
+          <button class="btn go">Send</button>
+        </form>
+        <div class="under"><button class="link" id="btnKeep">Keep talking</button><span id="count"></span></div>
+      </div>
+      <div id="after" hidden>
+        <button class="btn go" id="btnNext">Next person</button>
+        <button class="btn" id="btnLeave">Leave door</button>
+        <button class="btn quiet" id="btnReport2">Report</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="banned" class="screen" hidden>
+    <h2>You're locked out</h2>
+    <p id="bannedMsg">Reports against your account led to a temporary lockout.</p>
+  </section>
+  <section id="kicked" class="screen" hidden>
+    <h2>Opened somewhere else</h2>
+    <p>Corridor is open in another tab or device. Close it and reload this page to come back.</p>
+  </section>
+</main>
+
+<dialog id="joinDlg">
+  <form method="dialog" id="joinForm">
+    <h2 id="joinTitle"></h2>
+    <p id="joinLine"></p>
+    <label class="f" for="handleIn">Your name inside</label>
+    <input type="text" id="handleIn" maxlength="24" autocomplete="off">
+    <label class="f" style="margin-top:18px">Ground rules</label>
+    <ul class="rules">
+      <li>Text only. Phone numbers and links are hidden.</li>
+      <li>Be kind. Abuse gets a message blocked, then removal.</li>
+      <li>Chats aren't saved unless someone reports them.</li>
+    </ul>
+    <div class="btns"><button class="btn go" id="joinGo" value="go">Knock</button><button class="btn quiet" value="cancel" formnovalidate>Cancel</button></div>
+  </form>
+</dialog>
+
+<dialog id="repDlg">
+  <form method="dialog" id="repForm">
+    <h2>Report this person</h2>
+    <p>You'll be removed from this chat and never matched with them again. A moderator reviews the last messages.</p>
+    <div class="reasons" id="reasons"></div>
+    <label class="f" for="repNote">Anything else? (optional)</label>
+    <textarea id="repNote" maxlength="300"></textarea>
+    <div class="btns"><button class="btn go" id="repGo" value="go">Send report</button><button class="btn quiet" value="cancel" formnovalidate>Cancel</button></div>
+  </form>
+</dialog>
+
+<div id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null };
+  const LABELS = { harassment: 'Harassment or bullying', sexual: 'Sexual content', hate: 'Hate speech', spam: 'Spam or ads', minor: 'Seems underage', other: 'Something else' };
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+  let clientId = store.get('corridor.id');
+  if (!clientId) {
+    const a = new Uint8Array(16); crypto.getRandomValues(a);
+    clientId = [...a].map((x) => x.toString(16).padStart(2, '0')).join('');
+    store.set('corridor.id', clientId);
+  }
+
+  const ADJ = ['Quiet', 'Golden', 'Midnight', 'Paper', 'Sunny', 'Velvet', 'Mellow', 'Brisk', 'Lazy', 'Neon'];
+  const NOUN = ['Peacock', 'Chai', 'Metro', 'Lotus', 'Monsoon', 'Kite', 'Sparrow', 'Mango', 'Lantern', 'Banyan'];
+  const randName = () => ADJ[Math.random() * ADJ.length | 0] + ' ' + NOUN[Math.random() * NOUN.length | 0];
+
+  function show(id) {
+    for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id;
+    clearInterval(S.waitTimer);
+    window.scrollTo(0, 0);
+  }
+  function toast(t, ms = 3500) {
+    const el = $('#toast'); el.textContent = t; el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => (el.hidden = true), ms);
+  }
+  const tx = (o) => S.ws && S.ws.readyState === 1 && S.ws.send(JSON.stringify(o));
+  const doorOf = (id) => S.doors.find((d) => d.id === id);
+
+  // ---------- connection ----------
+  function connect() {
+    const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+    S.ws = ws;
+    ws.onopen = () => { $('#offline').hidden = true; tx({ t: 'hello', clientId, code: store.get('corridor.code') || '' }); };
+    ws.onmessage = (e) => on(JSON.parse(e.data));
+    ws.onclose = () => { if (S.dead) return; $('#offline').hidden = false; setTimeout(connect, 2000); };
+  }
+
+  function on(m) {
+    switch (m.t) {
+      case 'welcome':
+        S.doors = m.doors; S.counts = m.counts; S.cfg = m.cfg;
+        buildDoors(); show('corridor'); break;
+      case 'need_code': show('gate'); break;
+      case 'counts': S.counts = m.counts; paintCounts(); break;
+      case 'banned': S.dead = true; $('#bannedMsg').textContent = 'Reports against your account led to a lockout until ' + new Date(m.until).toLocaleString() + '.'; show('banned'); break;
+      case 'kicked': S.dead = true; show('kicked'); break;
+      case 'waiting': enterWait(m.door); break;
+      case 'matched': enterChat(m); break;
+      case 'msg': addMsg(m.me ? 'me' : 'them', m.text); if (!m.me) $('#typing').textContent = ''; break;
+      case 'typing': $('#typing').textContent = S.partner + ' is typing…'; clearTimeout(on.tt); on.tt = setTimeout(() => ($('#typing').textContent = ''), 2000); break;
+      case 'blocked': addSys(m.text + ' (' + m.strikes + ' of ' + m.limit + ')', 'warn'); break;
+      case 'notice': m.care ? addSys(m.text, 'care') : toast(m.text); break;
+      case 'removed': toast(m.text, 6000); S.door = null; show('corridor'); break;
+      case 'extend_vote': S.theirVote = true; paintKeep(); break;
+      case 'extended': S.deadline = performance.now() + m.left; S.total = Math.max(m.left, 1); S.voted = S.theirVote = false; paintKeep(); addSys('Time added. Keep going.'); break;
+      case 'ended': endChat('Time is up.'); break;
+      case 'partner_left': endChat(m.reason === 'disconnect' ? S.partner + ' left.' : S.partner + ' moved on.'); break;
+      case 'reported': toast('Report sent. You will not be matched with them again.', 5000); S.door = null; show('corridor'); break;
+    }
+  }
+
+  // ---------- corridor ----------
+  function buildDoors() {
+    const row = $('#doors'); row.innerHTML = '';
+    for (const d of S.doors) {
+      const slot = document.createElement('div'); slot.className = 'slot'; slot.dataset.id = d.id;
+      slot.innerHTML = '<button class="door" style="--h:' + d.hue + '"><div class="panel"><b></b><span></span></div></button><div class="sill"></div><div class="who"></div>';
+      slot.querySelector('b').textContent = d.name;
+      slot.querySelector('span').textContent = d.line;
+      slot.querySelector('.door').setAttribute('aria-label', 'Open door: ' + d.name);
+      slot.querySelector('.door').onclick = () => openJoin(d);
+      row.appendChild(slot);
+    }
+    paintCounts();
+  }
+  function paintCounts() {
+    for (const slot of document.querySelectorAll('.slot')) {
+      const n = S.counts[slot.dataset.id] || 0;
+      const lit = Math.min(1, n / 8);
+      slot.style.setProperty('--lit', lit.toFixed(2));
+      slot.querySelector('.who').textContent = n === 0 ? 'Empty' : n + ' inside';
+    }
+    if (!$('#wait').hidden) paintWait();
+  }
+
+  function openJoin(d) {
+    S.pending = d;
+    $('#joinTitle').textContent = d.name;
+    $('#joinLine').textContent = d.line + '.';
+    $('#handleIn').value = store.get('corridor.handle') || randName();
+    $('#joinDlg').showModal();
+  }
+  $('#joinForm').addEventListener('submit', (e) => {
+    if (e.submitter && e.submitter.value === 'go' && S.pending) {
+      const h = $('#handleIn').value.trim() || randName();
+      store.set('corridor.handle', h);
+      S.door = S.pending.id;
+      tx({ t: 'join', door: S.door, handle: h });
+    }
+  });
+
+  // ---------- waiting ----------
+  function enterWait(doorId) {
+    S.door = doorId; show('wait');
+    $('#waitName').textContent = 'Knocking on ' + doorOf(doorId).name;
+    const t0 = Date.now();
+    paintWait(t0);
+    S.waitTimer = setInterval(() => paintWait(t0), 3000);
+  }
+  function paintWait(t0) {
+    if (t0) paintWait.t0 = t0;
+    const waited = Date.now() - (paintWait.t0 || Date.now());
+    const alt = $('#waitAlt'); alt.innerHTML = '';
+    if (waited < 25000) { $('#waitMsg').textContent = 'Looking for someone inside.'; return; }
+    $('#waitMsg').textContent = 'Quiet in here. Wait a bit longer or try a busier door.';
+    const busy = S.doors.filter((d) => d.id !== S.door && (S.counts[d.id] || 0) > 0).sort((a, b) => S.counts[b.id] - S.counts[a.id]).slice(0, 2);
+    for (const d of busy) {
+      const b = document.createElement('button'); b.className = 'btn'; b.textContent = d.name + ' (' + S.counts[d.id] + ')';
+      b.onclick = () => { tx({ t: 'leave' }); openJoin(d); show('corridor'); };
+      alt.appendChild(b);
+    }
+  }
+  $('#waitLeave').onclick = () => { tx({ t: 'leave' }); show('corridor'); };
+
+  // ---------- chat ----------
+  function enterChat(m) {
+    S.partner = m.partner; S.ended = false; S.voted = S.theirVote = false;
+    S.deadline = performance.now() + m.left; S.total = m.left;
+    $('#pName').textContent = m.partner; $('#pDoor').textContent = doorOf(S.door).name;
+    $('#log').innerHTML = ''; $('#typing').textContent = '';
+    addSys('Try: ' + m.prompt, 'prompt');
+    $('#live').hidden = false; $('#after').hidden = true; $('#btnSkip').hidden = false;
+    paintKeep(); show('chat'); tick(); $('#input').focus();
+  }
+  function addMsg(who, text) {
+    const d = document.createElement('div'); d.className = 'm ' + who; d.textContent = text; $('#log').appendChild(d); scroll();
+  }
+  function addSys(text, cls) {
+    const d = document.createElement('div'); d.className = 'sys ' + (cls || ''); d.textContent = text; $('#log').appendChild(d); scroll();
+  }
+  const scroll = () => { const l = $('#log'); l.scrollTop = l.scrollHeight; };
+
+  function tick() {
+    clearInterval(tick.i);
+    tick.i = setInterval(() => {
+      if (S.ended) return;
+      const left = Math.max(0, S.deadline - performance.now());
+      $('#sill').style.width = (left / S.total * 100) + '%';
+      $('#sillbar').classList.toggle('low', left < 20000);
+      const s = Math.ceil(left / 1000);
+      $('#clock').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }, 250);
+  }
+  function paintKeep() {
+    const b = $('#btnKeep');
+    b.classList.toggle('hot', S.theirVote && !S.voted);
+    b.textContent = S.voted ? 'Waiting for ' + S.partner : S.theirVote ? S.partner + ' wants to keep talking. Tap to add time' : 'Keep talking';
+    b.disabled = S.voted;
+  }
+  function endChat(msg) {
+    S.ended = true; clearInterval(tick.i);
+    $('#clock').textContent = ''; $('#sill').style.width = '0%'; $('#typing').textContent = '';
+    addSys(msg);
+    $('#live').hidden = true; $('#after').hidden = false; $('#btnSkip').hidden = true;
+  }
+
+  $('#form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#input').value.trim();
+    if (!v || S.ended) return;
+    tx({ t: 'msg', text: v }); $('#input').value = ''; $('#count').textContent = '';
+  });
+  $('#input').addEventListener('input', () => {
+    const n = $('#input').value.length, max = S.cfg.maxLen;
+    $('#count').textContent = n > max - 60 ? (max - n) + ' left' : '';
+    const now = Date.now();
+    if (now - ($('#input')._t || 0) > 2000) { $('#input')._t = now; tx({ t: 'typing' }); }
+  });
+  $('#btnSkip').onclick = () => tx({ t: 'skip' });
+  $('#btnKeep').onclick = () => { S.voted = true; paintKeep(); tx({ t: 'extend' }); };
+  $('#btnNext').onclick = () => tx({ t: 'join', door: S.door, handle: store.get('corridor.handle') || randName() });
+  $('#btnLeave').onclick = () => { tx({ t: 'leave' }); show('corridor'); };
+
+  // ---------- report ----------
+  $('#reasons').innerHTML = Object.entries(LABELS).map(([k, v], i) => '<label><input type="radio" name="reason" value="' + k + '"' + (i === 0 ? ' checked' : '') + '>' + v + '</label>').join('');
+  const openReport = () => { $('#repNote').value = ''; $('#repDlg').showModal(); };
+  $('#btnReport').onclick = openReport; $('#btnReport2').onclick = openReport;
+  $('#repForm').addEventListener('submit', (e) => {
+    if (e.submitter && e.submitter.value === 'go') {
+      tx({ t: 'report', reason: (document.querySelector('input[name=reason]:checked') || {}).value || 'other', note: $('#repNote').value });
+    }
+  });
+
+  // ---------- gate ----------
+  $('#gateForm').addEventListener('submit', (e) => {
+    e.preventDefault(); store.set('corridor.code', $('#codeIn').value.trim());
+    tx({ t: 'hello', clientId, code: $('#codeIn').value.trim() });
+  });
+
+  connect();
+})();
+</script>
+</body>
+</html>

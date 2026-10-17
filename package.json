@@ -1,0 +1,16 @@
+{
+  "name": "corridor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/moderation.test.js && node test/e2e.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

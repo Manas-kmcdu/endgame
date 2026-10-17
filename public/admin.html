@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corridor admin</title>
+<style>
+:root { --bg:#14121a; --card:#1d1b25; --line:#2f2b3a; --ink:#f0ece6; --dim:#a39dae; --lamp:#ffc66b; --bad:#ff7a6b; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); }
+header { display:flex; gap:12px; align-items:center; padding:14px 20px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+header h1 { font-size:18px; margin:0 12px 0 0; }
+nav button, .b { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 12px; cursor:pointer; font:inherit; font-size:14px; }
+nav button.on { background:var(--lamp); color:#231a07; border-color:transparent; }
+main { padding:20px; max-width:980px; margin:0 auto; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+.meta { color:var(--dim); font-size:13px; margin-bottom:8px; }
+.tr { background:#14121a; border-radius:8px; padding:8px 10px; font-size:14px; line-height:1.5; max-height:220px; overflow:auto; }
+.tr .rep { color:var(--lamp); } .tr .red { color:var(--bad); }
+textarea, input { width:100%; background:#14121a; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font:inherit; font-size:14px; }
+textarea { min-height:160px; font-family: ui-monospace, Menlo, monospace; }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+code { background:#14121a; padding:1px 6px; border-radius:5px; }
+.tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); margin-right:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Corridor admin</h1>
+  <nav id="nav"></nav>
+  <input id="key" type="password" placeholder="Admin key" style="width:200px;margin-left:auto">
+  <button class="b" id="go">Load</button>
+</header>
+<main id="main"><p style="color:var(--dim)">Enter the admin key printed in the server console.</p></main>
+<script>
+const $ = (s) => document.querySelector(s);
+let state = null, tab = 'reports';
+const TABS = ['reports', 'keywords', 'bans', 'live'];
+$('#key').value = sessionStorage.getItem('ck') || '';
+const api = async (path, body) => {
+  const r = await fetch('/admin/api/' + path, { method: body ? 'POST' : 'GET', headers: { 'x-admin-key': $('#key').value, 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error((await r.json()).error || r.status);
+  return r.json();
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const when = (t) => new Date(t).toLocaleString();
+
+async function load() {
+  try { state = await api('state'); sessionStorage.setItem('ck', $('#key').value); render(); }
+  catch (e) { $('#main').innerHTML = '<p style="color:var(--bad)">Could not load: ' + esc(e.message) + '</p>'; }
+}
+$('#go').onclick = load;
+$('#nav').innerHTML = TABS.map((t) => '<button data-t="' + t + '">' + t + '</button>').join(' ');
+$('#nav').onclick = (e) => { if (e.target.dataset.t) { tab = e.target.dataset.t; render(); } };
+
+function render() {
+  if (!state) return;
+  for (const b of $('#nav').children) b.classList.toggle('on', b.dataset.t === tab);
+  const m = $('#main');
+  if (tab === 'reports') {
+    m.innerHTML = state.reports.length ? state.reports.map((r) => `
+      <div class="card"><div class="meta"><span class="tag">${esc(r.reason)}</span><span class="tag">${esc(r.status)}</span>${when(r.ts)} · door ${esc(r.door)} · reported <b>${esc(r.reportedHandle)}</b> (<code>${esc(r.reported.slice(0, 8))}</code>)</div>
+      ${r.note ? '<p>' + esc(r.note) + '</p>' : ''}
+      <div class="tr">${r.transcript.map((x) => '<div class="' + (x.who === 'reported' ? 'red' : 'rep') + '">' + (x.who === 'reported' ? 'reported: ' : 'reporter: ') + esc(x.text) + '</div>').join('') || '(no messages)'}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="b" onclick="ban('${r.reported}',24)">Ban 24h</button><button class="b" onclick="ban('${r.reported}',168)">Ban 7d</button><button class="b" onclick="ban('${r.reported}',87600)">Ban permanent</button>
+        <button class="b" onclick="status('${r.id}','closed')">Close</button></div></div>`).join('') : '<p style="color:var(--dim)">No reports.</p>';
+  } else if (tab === 'keywords') {
+    const k = state.keywords;
+    m.innerHTML = `<p style="color:var(--dim)">One entry per line. <code>word</code> exact, <code>word*</code> prefix, <code>*word*</code> contains, <code>two words</code> phrase. Obfuscation (f.u.c.k, fuuck, 4ss) is normalized automatically. Saved changes apply instantly.</p>
+      <div class="grid3">
+        <div><b>Block</b><div class="meta">Message rejected, strike added</div><textarea id="kb">${esc(k.block.join('\n'))}</textarea></div>
+        <div><b>Mask</b><div class="meta">Word becomes ****, message sent</div><textarea id="km">${esc(k.mask.join('\n'))}</textarea></div>
+        <div><b>Care</b><div class="meta">Sent, sender sees helpline</div><textarea id="kf">${esc(k.flag.join('\n'))}</textarea></div>
+      </div>
+      <p><label><input type="checkbox" id="kc" ${k.contacts !== false ? 'checked' : ''} style="width:auto"> Hide phone numbers, links, emails and Instagram/Snap handles</label></p>
+      <button class="b" onclick="saveKw()">Save list</button>
+      <h3>Test a message</h3><input id="tt" placeholder="Type a message to test"><pre id="tout" style="color:var(--dim)"></pre>`;
+    $('#tt').oninput = async () => { const r = await api('test', { text: $('#tt').value }); $('#tout').textContent = JSON.stringify(r, null, 1); };
+  } else if (tab === 'bans') {
+    const rows = Object.entries(state.bans).filter(([, b]) => b.until > Date.now());
+    m.innerHTML = (rows.map(([k, b]) => `<div class="card"><code>${esc(k)}</code> until ${when(b.until)} · ${esc(b.reason)} <button class="b" style="float:right" onclick="unban('${k}')">Unban</button></div>`).join('') || '<p style="color:var(--dim)">No active bans.</p>')
+      + '<h3>Recent blocked messages</h3>' + state.modlog.map((h) => `<div class="meta">${when(h.ts)} · <code>${esc(h.clientId.slice(0, 8))}</code> · ${esc(h.door)} · ${esc(h.terms.join(', '))}</div>`).join('');
+  } else {
+    m.innerHTML = `<div class="card">Online: <b>${state.live.online}</b> · Active chats: <b>${state.live.sessions}</b></div><div class="card">${Object.entries(state.live.counts).map(([d, n]) => esc(d) + ': ' + n).join('<br>')}</div>`;
+  }
+}
+async function ban(id, h) { await api('ban', { id, hours: h }); load(); }
+async function unban(id) { await api('unban', { id }); load(); }
+async function status(id, s) { await api('report-status', { id, status: s }); load(); }
+async function saveKw() {
+  const lines = (id) => $(id).value.split('\n').map((s) => s.trim()).filter(Boolean);
+  await api('keywords', { block: lines('#kb'), mask: lines('#km'), flag: lines('#kf'), contacts: $('#kc').checked });
+  await load(); alert('Saved');
+}
+if ($('#key').value) load();
+</script>
+</body>
+</html>
