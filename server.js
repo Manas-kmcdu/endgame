@@ -26,7 +26,7 @@ const CFG = {
 };
 const HELPLINE = 'If things feel heavy, you can call Tele-MANAS at 14416 any time. It is free and open 24x7.';
 const REASONS = ['harassment', 'sexual', 'hate', 'spam', 'minor', 'other'];
-const ACT_START = 6, ACT_SECS = 25, ACT_GAP = 6; // activity: delay before first card, answer time, pause after each reveal
+const ACT_START = 6, ACT_SECS = 25, ACT_GAP = 6; // shared chat activity: delay before first card, answer time, pause after each reveal
 
 const readJson = (f) => JSON.parse(fs.readFileSync(path.join(__dirname, 'data', f), 'utf8'));
 const doors = readJson('doors.json');
@@ -104,16 +104,16 @@ function startSession(a, b, doorId) {
   sessions.set(s.id, s);
   recent.set(pairKey(a.id, b.id), Date.now());
 
-  // one random activity from this door (quiz / debate / icebreaker / trending), shared live between the pair
-  const defs = door.activities || [];
+  // Shared activity in chat: debate / icebreaker / trending. Quizzes are solo and live on the waiting screen.
+  const defs = (door.activities || []).filter((x) => x.kind !== 'quiz');
   if (defs.length) {
-    s.act = { def: defs[Math.random() * defs.length | 0], i: 0, picks: {}, score: { [a.id]: 0, [b.id]: 0 }, open: false };
+    s.act = { def: defs[Math.random() * defs.length | 0], i: 0, picks: {}, open: false };
     s.actTimer = setTimeout(() => actItem(s.id), ACT_START * 1000);
   }
 
   const prompt = door.prompts[Math.random() * door.prompts.length | 0];
   for (const [me, other] of [[a, b], [b, a]]) {
-    me.state = 'chat'; me.sid = s.id; me.strikes = 0;
+    me.state = 'chat'; me.sid = s.id; me.strikes = 0; me.quiz = null;
     send(me, { t: 'matched', partner: other.handle, prompt, left: CFG.roundSec * 1000 });
   }
   broadcastCounts();
@@ -141,16 +141,13 @@ function endSession(sid, reason, by) {
   broadcastCounts();
 }
 
-// ---------- door activity (shared live) ----------
+// ---------- shared chat activity (debate / icebreaker / trending) ----------
 function actItem(sid) {
   const s = sessions.get(sid);
   if (!s || !s.act) return;
   const A = s.act, it = A.def.items[A.i];
   if (!it) { // all items done
-    const quiz = A.def.items.some((x) => typeof x.answer === 'number');
-    for (const [me, other] of [[s.a, s.b], [s.b, s.a]]) {
-      send(me, { t: 'act_done', quiz, mine: A.score[me.id], theirs: A.score[other.id], of: A.def.items.length });
-    }
+    for (const p of [s.a, s.b]) send(p, { t: 'act_done', of: A.def.items.length });
     s.act = null;
     return;
   }
@@ -165,16 +162,11 @@ function actItem(sid) {
 function actReveal(sid) {
   const s = sessions.get(sid);
   if (!s || !s.act || !s.act.open) return;
-  const A = s.act, it = A.def.items[A.i];
-  const quiz = typeof it.answer === 'number';
+  const A = s.act;
   A.open = false;
   clearTimeout(s.actTimer);
-  if (quiz) for (const p of [s.a, s.b]) if (A.picks[p.id] === it.answer) A.score[p.id]++;
   for (const [me, other] of [[s.a, s.b], [s.b, s.a]]) {
-    send(me, {
-      t: 'act_reveal', mine: A.picks[me.id] ?? -1, theirs: A.picks[other.id] ?? -1,
-      answer: quiz ? it.answer : null, fact: it.fact || '',
-    });
+    send(me, { t: 'act_reveal', mine: A.picks[me.id] ?? -1, theirs: A.picks[other.id] ?? -1 });
   }
   A.i++;
   s.actTimer = setTimeout(() => actItem(sid), ACT_GAP * 1000);
@@ -192,6 +184,43 @@ function onActPick(c, m) {
   send(other, { t: 'act_partner' });
 }
 
+// ---------- solo quiz (waiting screen, works with nobody else inside) ----------
+function quizStart(c) {
+  if (c.state !== 'waiting' || !c.door) return;
+  const quizzes = (doorMap.get(c.door).activities || []).filter((x) => x.kind === 'quiz');
+  if (!quizzes.length) return send(c, { t: 'quiz_none' });
+  c.quiz = { def: quizzes[Math.random() * quizzes.length | 0], i: 0, score: 0, open: false };
+  quizItem(c);
+}
+
+function quizItem(c) {
+  const Q = c.quiz;
+  if (!Q) return;
+  const it = Q.def.items[Q.i];
+  if (!it) {
+    send(c, { t: 'quiz_done', score: Q.score, of: Q.def.items.length });
+    c.quiz = null;
+    return;
+  }
+  Q.open = true;
+  send(c, { t: 'quiz_item', title: Q.def.title, n: Q.i + 1, of: Q.def.items.length, q: it.q, options: it.options });
+}
+
+function onQuizPick(c, m) {
+  const Q = c.quiz;
+  if (!Q || !Q.open || c.state !== 'waiting') return;
+  const it = Q.def.items[Q.i], p = m.pick;
+  if (!Number.isInteger(p) || p < 0 || p >= it.options.length) return;
+  Q.open = false;
+  if (p === it.answer) Q.score++;
+  Q.i++;
+  send(c, { t: 'quiz_reveal', mine: p, answer: it.answer, fact: it.fact || '', last: Q.i >= Q.def.items.length });
+}
+
+function onQuizNext(c) {
+  if (c.quiz && !c.quiz.open && c.state === 'waiting') quizItem(c);
+}
+
 function removeFromQueue(c) {
   if (!c.door) return;
   const q = queues.get(c.door);
@@ -200,7 +229,7 @@ function removeFromQueue(c) {
 }
 
 function enqueue(c, doorId) {
-  c.door = doorId; c.state = 'waiting';
+  c.door = doorId; c.state = 'waiting'; c.quiz = null;
   queues.get(doorId).push(c);
   send(c, { t: 'waiting', door: doorId });
   broadcastCounts();
@@ -210,7 +239,7 @@ function enqueue(c, doorId) {
 function leave(c, reason) {
   if (c.sid) endSession(c.sid, reason, c);
   removeFromQueue(c);
-  c.state = 'idle'; c.door = null; c.sid = null;
+  c.state = 'idle'; c.door = null; c.sid = null; c.quiz = null;
   broadcastCounts();
 }
 
@@ -235,6 +264,9 @@ function handle(c, m) {
     case 'skip': return onSkip(c);
     case 'extend': return onExtend(c);
     case 'act_pick': return onActPick(c, m);
+    case 'quiz_start': return quizStart(c);
+    case 'quiz_pick': return onQuizPick(c, m);
+    case 'quiz_next': return onQuizNext(c);
     case 'report': return onReport(c, m);
     case 'leave': return leave(c, 'leave');
   }
@@ -436,7 +468,7 @@ wss.on('connection', (ws, req) => {
   const ip = ipHash(String(req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim());
   const c = {
     ws, ip, id: null, ready: false, handle: '', door: null, state: 'idle', sid: null,
-    msgTimes: [], strikes: 0, cooldownUntil: 0, last: null, alive: true,
+    msgTimes: [], strikes: 0, cooldownUntil: 0, last: null, alive: true, quiz: null,
   };
   ws.on('pong', () => { c.alive = true; });
   ws.on('message', (raw) => {
