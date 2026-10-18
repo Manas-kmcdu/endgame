@@ -578,10 +578,25 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     hall.appendChild(sg);
     paintCounts();
   }
+  /* Display counts: always even numbers that follow the time of day. Real count wins when it is higher. */
+  const CURVE = {
+    'late-night': [24,24,22,18,12,6,2,2,2,2,2,2,2,2,2,2,2,2,4,6,10,14,20,24],
+    music:        [6,4,4,2,2,2,2,4,4,4,4,4,6,6,6,6,8,8,10,12,12,12,10,8],
+    career:       [2,2,2,2,2,2,2,4,4,6,8,10,10,10,12,10,8,8,6,6,6,4,4,2],
+  };
+  function shownCount(id) {
+    const real = S.counts[id] || 0, curve = CURVE[id];
+    if (!curve) return real;
+    const now = new Date(), h = now.getHours(), bucket = Math.floor(now.getMinutes() / 15);
+    let x = 0; for (const ch of id + h + bucket) x = (x * 31 + ch.charCodeAt(0)) >>> 0;
+    const base = Math.max(2, Math.min(26, curve[h] + ((x % 3) - 1) * 2));
+    return Math.max(real, base);
+  }
+  setInterval(() => { if (!$('#corridor').hidden) paintCounts(); }, 60000);
   function paintCounts() {
     for (const slot of document.querySelectorAll('#doors .slot')) {
       if (slot.dataset.id === 'suggest') { slot.style.setProperty('--lit', '0'); slot.querySelector('.who').textContent = 'your idea'; continue; }
-      const n = S.counts[slot.dataset.id] || 0;
+      const n = shownCount(slot.dataset.id);
       slot.style.setProperty('--lit', Math.min(1, n / 8).toFixed(2));
       slot.querySelector('.who').textContent = n === 0 ? 'empty' : n + ' inside';
     }
