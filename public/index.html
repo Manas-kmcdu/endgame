@@ -106,8 +106,7 @@ main { position: relative; z-index: 1; }
 
 /* ---------- the hall ---------- */
 .hallwrap { position: relative; flex: 1; display: flex; align-items: center; min-height: 440px; margin-top: 8px; }
-.hallwrap::before { content: ""; position: absolute; left: 0; right: 0; bottom: 78px; height: 26px; background: var(--floor); border-top: 2px solid var(--line); transition: background-color .5s; }
-.hall { position: relative; display: flex; align-items: flex-end; gap: 46px; width: 100%; overflow-x: auto; padding: 34px calc(50% - 90px) 40px; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); outline-offset: -6px; }
+.hall { position: relative; display: flex; align-items: flex-end; gap: 46px; width: 100%; overflow-x: auto; padding: 34px calc(50% - 90px) 40px clamp(56px, 8vw, 120px); scroll-snap-type: x proximity; scrollbar-width: none; background: linear-gradient(var(--line), var(--line)) left bottom 96px / 100% 2px no-repeat, linear-gradient(var(--floor), var(--floor)) left bottom 72px / 100% 26px no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); outline-offset: -6px; }
 .hall::-webkit-scrollbar { display: none; }
 .arrow { position: absolute; top: 44%; z-index: 5; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--ink); background: var(--paper); display: grid; place-items: center; padding: 0; transition: transform .25s; }
 .arrow:hover { transform: scale(1.1); }
@@ -214,6 +213,8 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 #offline { position: fixed; top: 0; left: 0; right: 0; background: var(--red); color: var(--on-red); text-align: center; padding: 6px; font: 700 14px var(--sans); z-index: 60; }
 
 @media (max-width: 560px) {
+  .tools { top: 10px; right: 10px; gap: 8px; }
+  .tool { width: 40px; height: 40px; }
   .slot { --dw: 148px; --dh: 318px; }
   .hall { gap: 34px; padding-inline: calc(50% - 74px); }
   .top { padding-right: 70px; }
