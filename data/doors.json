@@ -27,34 +27,6 @@
         { "q": "Road trip playlist?", "options": ["Bollywood throwbacks", "Indie", "Punjabi bangers", "Lo-fi"] }
       ] }
     ] },
-  { "id": "screen", "name": "Screen", "line": "Films, anime, series, rewatches", "hue": 24,
-    "prompts": ["What are you watching right now?", "A rewatch you never get tired of?", "Most underrated thing you've seen?", "Anime or live action?"],
-    "activities": [
-      { "kind": "debate", "title": "Screen wars", "items": [
-        { "q": "Rewatch a comfort show or start something new?", "options": ["Rewatch", "Something new"] },
-        { "q": "Subtitles on or off?", "options": ["On, always", "Off"] },
-        { "q": "Anime: sub or dub?", "options": ["Sub", "Dub"] }
-      ] },
-      { "kind": "quiz", "title": "Film quiz", "items": [
-        { "q": "Which film's song 'Naatu Naatu' won an Oscar in 2023?", "options": ["RRR", "Pushpa", "Kantara", "Gangubai Kathiawadi"], "answer": 0, "fact": "RRR won Best Original Song at the 2023 Oscars." },
-        { "q": "What is the main character called in Spirited Away?", "options": ["Chihiro", "Sophie", "Kiki", "Mei"], "answer": 0, "fact": "Chihiro, in Studio Ghibli's 2001 film." },
-        { "q": "Who directed Dangal?", "options": ["Nitesh Tiwari", "Rajkumar Hirani", "Zoya Akhtar", "Karan Johar"], "answer": 0, "fact": "Nitesh Tiwari." }
-      ] }
-    ] },
-  { "id": "builders", "name": "Builders", "line": "Startups, side projects, half-built ideas", "hue": 168,
-    "prompts": ["What are you building, or want to build?", "Worst idea you were weirdly excited about?", "What problem on campus would you fix first?", "Tool you can't work without?"],
-    "activities": [
-      { "kind": "debate", "title": "Founder dilemmas", "items": [
-        { "q": "Build it perfect, then launch. Or launch ugly and fix live?", "options": ["Perfect first", "Launch ugly"] },
-        { "q": "Solo or co-founder?", "options": ["Solo", "Co-founder"] },
-        { "q": "Raise money or bootstrap?", "options": ["Raise", "Bootstrap"] }
-      ] },
-      { "kind": "quiz", "title": "Startup trivia", "items": [
-        { "q": "What does MVP stand for in startups?", "options": ["Most Valuable Player", "Minimum Viable Product", "Maximum Value Proposition", "Main Venture Plan"], "answer": 1, "fact": "Smallest version that tests whether people want it." },
-        { "q": "A unicorn startup is valued at least...", "options": ["$100 million", "$1 billion", "$10 billion", "$100 billion"], "answer": 1, "fact": "$1 billion or more, while still private." },
-        { "q": "Which of these is a version control tool?", "options": ["Git", "Figma", "Notion", "Slack"], "answer": 0, "fact": "Git, created by Linus Torvalds in 2005." }
-      ] }
-    ] },
   { "id": "career", "name": "Career", "line": "Internships, placements, what next", "hue": 212,
     "prompts": ["What are you aiming for after college?", "Best advice you got on internships?", "A skill you're picking up right now?", "Which role did you not know existed until recently?"],
     "activities": [
@@ -67,48 +39,6 @@
         { "q": "Ideal resume length for a fresher?", "options": ["1 page", "3 pages", "5 pages"], "answer": 0, "fact": "One page is the norm for freshers." },
         { "q": "What does CTC stand for?", "options": ["Cost to Company", "Company Total Credit", "Cost to Candidate", "Career Track Compensation"], "answer": 0, "fact": "Total yearly cost of an employee to the company." },
         { "q": "In the STAR interview method, S stands for...", "options": ["Situation", "Skill", "Speed", "Strategy"], "answer": 0, "fact": "Situation, Task, Action, Result." }
-      ] }
-    ] },
-  { "id": "hot-takes", "name": "Hot takes", "line": "Pick a side and defend it", "hue": 8,
-    "prompts": ["Most overrated thing on campus?", "Breakfast or dinner: which meal wins?", "Hill you'll die on?", "Metro or cab, and why?"],
-    "activities": [
-      { "kind": "debate", "title": "Campus hot takes", "items": [
-        { "q": "Which meal wins?", "options": ["Breakfast", "Dinner"] },
-        { "q": "Metro or cab?", "options": ["Metro", "Cab"] },
-        { "q": "75% attendance rule: fair or outdated?", "options": ["Fair", "Outdated"] }
-      ] },
-      { "kind": "trending", "title": "Everyone is arguing about", "items": [
-        { "q": "Will AI take entry-level jobs?", "options": ["Yes, soon", "Some of them", "No"] },
-        { "q": "Short videos are ruining attention spans.", "options": ["True", "Overblown"] },
-        { "q": "Is a degree still necessary?", "options": ["Yes", "Skills matter more"] }
-      ] }
-    ] },
-  { "id": "chai", "name": "Chai & momos", "line": "Food runs, street eats, cafe finds", "hue": 46,
-    "prompts": ["Best momo spot near campus?", "Chai order, exactly?", "One place you keep going back to?", "Cheap meal worth the metro ride?"],
-    "activities": [
-      { "kind": "debate", "title": "Food court", "items": [
-        { "q": "Momos: steamed or fried?", "options": ["Steamed", "Fried", "Tandoori"] },
-        { "q": "Chai?", "options": ["Adrak", "Elaichi", "Plain"] },
-        { "q": "Street stall or cafe?", "options": ["Street stall", "Cafe"] }
-      ] },
-      { "kind": "quiz", "title": "Food trivia", "items": [
-        { "q": "Which spice is the most expensive by weight?", "options": ["Saffron", "Cardamom", "Vanilla pods", "Black pepper"], "answer": 0, "fact": "Saffron: each flower gives only three threads." },
-        { "q": "Which Indian state grows the most tea?", "options": ["Assam", "Kerala", "Tamil Nadu", "Himachal Pradesh"], "answer": 0, "fact": "Assam is India's largest tea-producing state." },
-        { "q": "Which fruit is called the king of fruits in India?", "options": ["Mango", "Banana", "Jackfruit", "Lychee"], "answer": 0, "fact": "Mango." }
-      ] }
-    ] },
-  { "id": "gaming", "name": "Gaming", "line": "Ranked, co-op, comfort games", "hue": 130,
-    "prompts": ["What are you playing right now?", "Comfort game you always return to?", "Mobile, console or PC?", "Best game you finished this year?"],
-    "activities": [
-      { "kind": "debate", "title": "Gamer debates", "items": [
-        { "q": "Controller or keyboard and mouse?", "options": ["Controller", "Keyboard + mouse", "Touchscreen"] },
-        { "q": "Solo story games or co-op?", "options": ["Solo", "Co-op"] },
-        { "q": "After losing: rage quit or grind until you win?", "options": ["Rage quit", "Grind"] }
-      ] },
-      { "kind": "quiz", "title": "Game trivia", "items": [
-        { "q": "Which game has creepers?", "options": ["Minecraft", "Fortnite", "Roblox", "Terraria"], "answer": 0, "fact": "Minecraft." },
-        { "q": "What does GG mean?", "options": ["Go Go", "Good Game", "Get Gold", "Great Goal"], "answer": 1, "fact": "Good game." },
-        { "q": "Which series stars Master Chief?", "options": ["Halo", "Doom", "Gears of War", "Mass Effect"], "answer": 0, "fact": "Halo." }
       ] }
     ] }
 ]
