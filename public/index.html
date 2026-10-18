@@ -168,10 +168,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .center p { color: var(--ink2); }
 .center form { width: 100%; text-align: left; margin-top: 14px; }
 .err { color: var(--red); font-weight: 700; margin-top: 12px; }
-#wait .slot { --dw: 150px; --dh: 310px; animation: none; transform: none; }
+#wait .slot { --dw: 120px; --dh: 250px; animation: none; transform: none; }
+#wait .note { padding: 10px 6px 8px; }
+#wait .note b { font-size: 19px; }
 #wait .door { transform: none; }
 #wait .slot.knocking .leaf { animation: knock 2.6s ease-in-out infinite; transform-origin: left center; }
 @keyframes knock { 0%, 55%, 100% { transform: rotateY(0); } 6%, 18%, 30% { transform: rotateY(-5deg); } 12%, 24%, 36% { transform: rotateY(0); } }
+#wait .act { width: 100%; text-align: left; margin: 18px 0 0; }
 
 /* ---------- chat ---------- */
 #chat { --c: #B3202E; --cink: #FFF8EA; height: 100dvh; min-height: 0; max-width: 780px; margin: 0 auto; background: var(--paper); border-inline: 2px solid var(--line); position: relative; transition: background-color .5s; }
@@ -190,13 +193,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .sillbar.low i { animation: lowp 1s ease-in-out infinite; }
 @keyframes lowp { 50% { opacity: .4; } }
 
-/* ---------- door activity card ---------- */
-.act { margin: 12px 18px 0; padding: 14px 16px; background: var(--paper2); border: 2px solid var(--line); border-radius: 16px; animation: pop .35s cubic-bezier(.2, .9, .3, 1.2); }
+/* ---------- activity card (shared in chat, solo quiz on the waiting screen) ---------- */
+.act { --c: #B3202E; --cink: #FFF8EA; margin: 12px 18px 0; padding: 14px 16px; background: var(--paper2); border: 2px solid var(--line); border-radius: 16px; animation: pop .35s cubic-bezier(.2, .9, .3, 1.2); }
 .ah { display: flex; align-items: center; gap: 8px; font: 700 13px var(--sans); color: var(--ink2); }
 .ah .chip { background: var(--c); color: var(--cink); padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
 .ah .an { margin-left: auto; }
 .ah .link { font-size: 13px; }
-.aq { font: 700 27px/1.1 var(--hand); margin: 10px 0 12px; color: var(--ink); }
+.act .aq { font: 700 27px/1.1 var(--hand); margin: 10px 0 12px; color: var(--ink); }
 .ao { display: grid; gap: 8px; }
 .opt { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; padding: 10px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--paper); font: 700 16px var(--sans); transition: transform .15s, border-color .2s; }
 .opt:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--ink); }
@@ -205,7 +208,8 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .opt.right { border-color: #2E8B57; background: rgb(46 139 87 / .16); }
 .opt.wrong { border-color: var(--red); }
 .opt em { font: 700 13px var(--sans); font-style: normal; color: var(--ink2); }
-.as { min-height: 22px; margin-top: 10px; color: var(--ink2); font-size: 15px; }
+.act .as { min-height: 22px; margin-top: 10px; color: var(--ink2); font-size: 15px; }
+.act .btns { margin-top: 12px; }
 
 #log { flex: 1; overflow-y: auto; padding: 22px 18px; display: flex; flex-direction: column; gap: 10px; }
 .m { max-width: 78%; padding: 10px 14px; border-radius: 18px; overflow-wrap: anywhere; line-height: 1.4; animation: msgIn .3s cubic-bezier(.2, .9, .3, 1.2); }
@@ -239,7 +243,9 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   .pname { font-size: 32px; }
   #chat { border-inline: 0; }
   .act { margin: 10px 12px 0; padding: 12px; }
-  .aq { font-size: 24px; margin: 8px 0 10px; }
+  .act .aq { font-size: 24px; margin: 8px 0 10px; }
+  #wait .slot { --dw: 104px; --dh: 214px; }
+  #wait .act { margin: 14px 0 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
@@ -302,6 +308,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     <div class="slot knocking" id="waitDoor"></div>
     <h2 id="waitName">Knocking…</h2>
     <p id="waitMsg">Looking for someone inside.</p>
+    <div class="act" id="quizCard" hidden></div>
     <div id="waitAlt" class="btns" style="justify-content:center"></div>
     <div class="btns" style="justify-content:center"><button class="btn quiet" id="waitLeave">Back to the corridor</button></div>
   </section>
@@ -376,7 +383,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0 };
+  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false };
   const LABELS = { harassment: 'Harassment or bullying', sexual: 'Sexual content', hate: 'Hate speech', spam: 'Spam or ads', minor: 'Seems underage', other: 'Something else' };
 
   /* One look per door. Colors follow the painted-door style; icons are drawn in the same stroke as the notes. */
@@ -490,10 +497,14 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       case 'waiting': enterWait(m.door); break;
       case 'matched': enterChat(m); break;
       case 'msg': addMsg(m.me ? 'me' : 'them', m.text); if (!m.me) $('#typing').textContent = ''; break;
+      case 'quiz_item': quizItem(m); break;
+      case 'quiz_reveal': quizReveal(m); break;
+      case 'quiz_done': quizDone(m); break;
+      case 'quiz_none': $('#quizCard').hidden = true; break;
       case 'act_item': actItem(m); break;
       case 'act_partner': if (!S.actPicked && $('#actStatus')) $('#actStatus').textContent = S.partner + ' already answered.'; break;
       case 'act_reveal': actReveal(m); break;
-      case 'act_done': actDone(m); break;
+      case 'act_done': actDone(); break;
       case 'typing': $('#typing').textContent = S.partner + ' is typing…'; clearTimeout(on.tt); on.tt = setTimeout(() => ($('#typing').textContent = ''), 2000); break;
       case 'blocked': addSys(m.text + ' (' + m.strikes + ' of ' + m.limit + ')', 'warn'); break;
       case 'notice': m.care ? addSys(m.text, 'care') : toast(m.text); break;
@@ -579,9 +590,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   /* ---------- waiting ---------- */
   function enterWait(doorId) {
     S.door = doorId; show('wait');
-    const d = doorOf(doorId), wd = $('#waitDoor');
+    const d = doorOf(doorId), wd = $('#waitDoor'), L = look(doorId);
     const el = slotEl(d, 0); wd.style.cssText = el.style.cssText; wd.innerHTML = el.innerHTML;
     $('#waitName').textContent = 'Knocking on ' + d.name.toLowerCase();
+    const card = $('#quizCard');
+    card.style.setProperty('--c', L.c); card.style.setProperty('--cink', L.ink);
+    card.hidden = true;
+    tx({ t: 'quiz_start' }); // solo quiz while you wait; works with nobody else inside
     const t0 = Date.now();
     paintWait(t0);
     S.waitTimer = setInterval(() => paintWait(t0), 3000);
@@ -591,7 +606,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     const waited = Date.now() - (paintWait.t0 || Date.now());
     const alt = $('#waitAlt'); alt.innerHTML = '';
     if (waited < 25000) { $('#waitMsg').textContent = 'Looking for someone inside.'; return; }
-    $('#waitMsg').textContent = 'Quiet in here. Wait a bit longer or try a busier door.';
+    $('#waitMsg').textContent = 'Quiet in here. Play the quiz, wait a bit longer, or try a busier door.';
     const busy = S.doors.filter((d) => d.id !== S.door && (S.counts[d.id] || 0) > 0).sort((a, b) => S.counts[b.id] - S.counts[a.id]).slice(0, 2);
     for (const d of busy) {
       const b = document.createElement('button'); b.className = 'btn'; b.textContent = d.name + ' (' + S.counts[d.id] + ')';
@@ -601,6 +616,51 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   }
   $('#waitLeave').onclick = () => { tx({ t: 'leave' }); show('corridor'); };
 
+  /* ---------- solo quiz (waiting screen) ---------- */
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+  function quizItem(m) {
+    S.quizPicked = false;
+    const el = $('#quizCard'); el.hidden = false; el.replaceChildren();
+    const head = mk('div', 'ah');
+    head.append(mk('span', 'chip', 'quiz'), mk('span', '', m.title), mk('span', 'an', m.n + '/' + m.of));
+    const opts = mk('div', 'ao');
+    m.options.forEach((t, i) => {
+      const b = mk('button', 'opt'); b.type = 'button'; b.append(mk('span', '', t));
+      b.onclick = () => {
+        if (S.quizPicked) return;
+        S.quizPicked = true; b.classList.add('mine');
+        for (const o of opts.children) o.disabled = true;
+        tx({ t: 'quiz_pick', pick: i });
+      };
+      opts.appendChild(b);
+    });
+    const st = mk('p', 'as'); st.id = 'quizStatus';
+    el.append(head, mk('p', 'aq', m.q), opts, st);
+  }
+  function quizReveal(m) {
+    const el = $('#quizCard'), opts = el.querySelector('.ao');
+    if (el.hidden || !opts) return;
+    [...opts.children].forEach((b, i) => {
+      b.disabled = true; b.classList.remove('mine');
+      b.classList.toggle('right', i === m.answer);
+      if (i === m.mine && i !== m.answer) b.classList.add('wrong');
+    });
+    $('#quizStatus').textContent = (m.mine === m.answer ? 'Right. ' : 'Not quite. ') + m.fact;
+    const row = mk('div', 'btns');
+    const nx = mk('button', 'btn go', m.last ? 'See score' : 'Next'); nx.type = 'button';
+    nx.onclick = () => tx({ t: 'quiz_next' });
+    row.append(nx); el.append(row);
+  }
+  function quizDone(m) {
+    const el = $('#quizCard'); el.hidden = false; el.replaceChildren();
+    const line = m.score === m.of ? 'Perfect. Show-off.' : m.score === 0 ? 'Zero. Bold.' : 'Not bad.';
+    const row = mk('div', 'btns');
+    const again = mk('button', 'btn go', 'Play again'); again.type = 'button';
+    again.onclick = () => tx({ t: 'quiz_start' });
+    row.append(again);
+    el.append(mk('p', 'aq', 'You got ' + m.score + ' of ' + m.of + '.'), mk('p', 'as', line + ' Someone may knock any second.'), row);
+  }
+
   /* ---------- chat ---------- */
   function enterChat(m) {
     const L = look(S.door), chat = $('#chat');
@@ -609,7 +669,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     S.deadline = performance.now() + m.left; S.total = m.left;
     $('#pName').textContent = m.partner; $('#pDoor').textContent = doorOf(S.door).name;
     $('#log').innerHTML = ''; $('#typing').textContent = '';
-    clearTimeout(S.actHide); $('#act').hidden = true;
+    clearTimeout(S.actHide); $('#act').hidden = true; $('#quizCard').hidden = true;
     addSys(m.prompt, 'prompt');
     $('#live').hidden = false; $('#after').hidden = true; $('#btnSkip').hidden = false;
     paintKeep(); show('chat'); tick(); $('#input').focus();
@@ -658,8 +718,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   $('#btnNext').onclick = () => tx({ t: 'join', door: S.door, handle: store.get('corridor.handle') || randName() });
   $('#btnLeave').onclick = () => { tx({ t: 'leave' }); show('corridor'); };
 
-  /* ---------- door activity (quiz / debate / icebreaker / trending, shared live) ---------- */
-  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+  /* ---------- shared chat activity (debate / icebreaker / trending) ---------- */
   function actItem(m) {
     clearTimeout(S.actHide); S.actPicked = false;
     const el = $('#act'); el.hidden = false; el.replaceChildren();
@@ -686,25 +745,21 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     if (el.hidden || !opts) return;
     [...opts.children].forEach((b, i) => {
       b.disabled = true; b.classList.remove('mine');
-      if (m.answer !== null) {
-        b.classList.toggle('right', i === m.answer);
-        if (i === m.mine && i !== m.answer) b.classList.add('wrong');
-      } else if (i === m.mine) b.classList.add('mine');
+      if (i === m.mine) b.classList.add('mine');
       const who = [];
       if (i === m.mine) who.push('you');
       if (i === m.theirs) who.push(S.partner);
       if (who.length) b.append(mk('em', '', who.join(' + ')));
     });
     let line;
-    if (m.answer !== null) line = (m.mine === m.answer ? 'You got it. ' : 'Not this time. ') + m.fact;
-    else if (m.mine < 0 || m.theirs < 0) line = 'Not both answered. Talk about it instead.';
+    if (m.mine < 0 || m.theirs < 0) line = 'Not both answered. Talk about it instead.';
     else if (m.mine === m.theirs) line = 'You both picked "' + opts.children[m.mine].firstChild.textContent + '".';
     else line = S.partner + ' picked differently. Defend yours.';
     $('#actStatus').textContent = line;
   }
-  function actDone(m) {
+  function actDone() {
     const el = $('#act'); if (el.hidden) return;
-    el.replaceChildren(mk('p', 'as', m.quiz ? 'Score: you ' + m.mine + ', ' + S.partner + ' ' + m.theirs + ' (of ' + m.of + '). Keep talking.' : 'That is it. Keep talking.'));
+    el.replaceChildren(mk('p', 'as', 'That is it. Keep talking.'));
     S.actHide = setTimeout(() => { el.hidden = true; }, 8000);
   }
 
