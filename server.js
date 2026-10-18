@@ -268,6 +268,7 @@ function handle(c, m) {
     case 'quiz_pick': return onQuizPick(c, m);
     case 'quiz_next': return onQuizNext(c);
     case 'report': return onReport(c, m);
+    case 'suggest': return onSuggest(c, m);
     case 'leave': return leave(c, 'leave');
   }
 }
@@ -386,6 +387,19 @@ function onReport(c, m) {
   send(c, { t: 'reported' });
 }
 
+// ---------- door suggestions ----------
+function onSuggest(c, m) {
+  const text = String(m.text || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  if (text.length < 3) return;
+  const now = Date.now();
+  if (now - (c.lastSuggest || 0) < 30000) return send(c, { t: 'notice', text: 'Thanks! Try another in a little while.' });
+  if (moderator.scan(text).action === 'block') return send(c, { t: 'notice', text: 'That one could not be sent. Keep it respectful.' });
+  c.lastSuggest = now;
+  fs.mkdir(CFG.dataDir, { recursive: true }, () =>
+    fs.appendFile(path.join(CFG.dataDir, 'suggestions.jsonl'), JSON.stringify({ ts: now, clientId: c.id, text }) + '\n', () => {}));
+  send(c, { t: 'notice', text: 'Thanks! Your idea was sent.' });
+}
+
 // ---------- http ----------
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json',
@@ -416,6 +430,7 @@ async function admin(req, res, url) {
         bans: store.bans,
         modlog: store.modlog.slice(-100).reverse(),
         keywords: JSON.parse(fs.readFileSync(keywordsFile, 'utf8')),
+        suggestions: (() => { try { return fs.readFileSync(path.join(CFG.dataDir, 'suggestions.jsonl'), 'utf8').trim().split('\n').filter(Boolean).slice(-100).reverse().map((l) => JSON.parse(l)); } catch { return []; } })(),
         live: { counts: counts(), sessions: sessions.size, online: byId.size },
       });
     }
@@ -468,7 +483,7 @@ wss.on('connection', (ws, req) => {
   const ip = ipHash(String(req.headers['x-forwarded-for'] || req.socket.remoteAddress).split(',')[0].trim());
   const c = {
     ws, ip, id: null, ready: false, handle: '', door: null, state: 'idle', sid: null,
-    msgTimes: [], strikes: 0, cooldownUntil: 0, last: null, alive: true, quiz: null,
+    msgTimes: [], strikes: 0, cooldownUntil: 0, last: null, alive: true, quiz: null, lastSuggest: 0,
   };
   ws.on('pong', () => { c.alive = true; });
   ws.on('message', (raw) => {
