@@ -19,7 +19,7 @@ const CFG = {
   strikeLimit: 3,                            // blocked messages per round before removal
   strikeCooldownMs: 10 * 60e3,
   skipBurst: 8,                              // max skips per minute
-  inviteCode: env.INVITE_CODE || '',         // optional gate until real DU verification is plugged in
+  inviteCode: (env.INVITE_CODE || '').trim().replace(/^["']+|["']+$/g, '').trim(),         // optional gate until real DU verification is plugged in
   adminKey: env.ADMIN_KEY || crypto.randomBytes(8).toString('hex'),
   ipSalt: env.IP_SALT || 'corridor-salt',
   dataDir: env.DATA_DIR || path.join(__dirname, 'var'),
@@ -181,7 +181,7 @@ function onHello(c, m) {
   const id = String(m.clientId || '');
   if (!/^[a-f0-9-]{16,64}$/.test(id)) return c.ws.close();
   if (CFG.inviteCode && String(m.code || '').trim().toLowerCase() !== CFG.inviteCode.toLowerCase()) {
-    send(c, { t: 'need_code' });
+    send(c, { t: 'need_code', wrong: !!String(m.code || '').trim() });
     return;
   }
   const until = store.banUntil(id, 'ip:' + c.ip);
@@ -340,7 +340,7 @@ async function admin(req, res, url) {
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
   if (url.startsWith('/admin/api/')) return admin(req, res, url);
-  if (url === '/healthz') return json(res, 200, { ok: true });
+  if (url === '/healthz') return json(res, 200, { ok: true, gate: !!CFG.inviteCode, codeLen: CFG.inviteCode.length, rawLen: (env.INVITE_CODE || '').length });
   const file = url === '/' ? 'index.html' : url === '/admin' ? 'admin.html' : url.slice(1);
   const full = path.join(__dirname, 'public', file);
   if (!full.startsWith(path.join(__dirname, 'public'))) { res.writeHead(403); return res.end(); }
