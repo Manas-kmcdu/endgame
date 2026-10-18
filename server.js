@@ -291,7 +291,11 @@ function onReport(c, m) {
 }
 
 // ---------- http ----------
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' };
+const MIME = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json',
+  '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4', '.wav': 'audio/wav',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon',
+};
 
 function authed(req) {
   const k = String(req.headers['x-admin-key'] || '');
@@ -344,10 +348,21 @@ const server = http.createServer((req, res) => {
   const file = url === '/' ? 'index.html' : url === '/admin' ? 'admin.html' : url.slice(1);
   const full = path.join(__dirname, 'public', file);
   if (!full.startsWith(path.join(__dirname, 'public'))) { res.writeHead(403); return res.end(); }
-  fs.readFile(full, (err, data) => {
-    if (err) { res.writeHead(404); return res.end('Not found'); }
-    res.writeHead(200, { 'content-type': MIME[path.extname(full)] || 'application/octet-stream', 'cache-control': 'no-cache' });
-    res.end(data);
+  fs.stat(full, (err, st) => {
+    if (err || !st.isFile()) { res.writeHead(404); return res.end('Not found'); }
+    const type = MIME[path.extname(full)] || 'application/octet-stream';
+    const long = /\.(woff2|mp3|ogg|m4a|wav|png|jpg|webp)$/.test(full);
+    const headers = { 'content-type': type, 'accept-ranges': 'bytes', 'cache-control': long ? 'public, max-age=86400' : 'no-cache' };
+    const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    if (m && (m[1] || m[2])) { // Range support: Safari will not play audio without it
+      let start = m[1] ? +m[1] : Math.max(0, st.size - +m[2]);
+      let end = m[1] && m[2] ? Math.min(+m[2], st.size - 1) : st.size - 1;
+      if (start > end || start >= st.size) { res.writeHead(416, { 'content-range': 'bytes */' + st.size }); return res.end(); }
+      res.writeHead(206, { ...headers, 'content-range': `bytes ${start}-${end}/${st.size}`, 'content-length': end - start + 1 });
+      return fs.createReadStream(full, { start, end }).pipe(res);
+    }
+    res.writeHead(200, { ...headers, 'content-length': st.size });
+    fs.createReadStream(full).pipe(res);
   });
 });
 
