@@ -6,11 +6,11 @@
 <title>Corridor</title>
 <meta name="description" content="Pick a door. Talk to someone inside for a few minutes. Text only.">
 <script>
-/* Set the theme before first paint so there is no flash. Saved choice wins, otherwise follow the device. */
+/* Set the theme before first paint so there is no flash. Saved choice wins, otherwise light. */
 (function () {
   var t = null;
   try { t = localStorage.getItem('corridor.theme'); } catch (e) {}
-  if (t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (t !== 'light' && t !== 'dark') t = 'light';
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
@@ -234,6 +234,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 #toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 14px; max-width: min(90vw, 440px); z-index: 50; font-size: 15px; line-height: 1.4; animation: pop .3s ease; }
 #offline { position: fixed; top: 0; left: 0; right: 0; background: var(--red); color: var(--on-red); text-align: center; padding: 6px; font: 700 14px var(--sans); z-index: 60; }
 
+/* ---------- 15-second keep-talking prompt ---------- */
+.kp { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; pointer-events: none; }
+.kpbox { pointer-events: auto; background: var(--paper); border: 2px solid var(--ink); border-radius: 22px; padding: 22px 24px; text-align: center; max-width: 340px; box-shadow: 8px 8px 0 var(--shade); animation: pop .35s cubic-bezier(.2, .9, .3, 1.2); }
+.kpbox .kpt { font: 700 32px/1.1 var(--hand); color: var(--ink); }
+.kpbox .kps { color: var(--ink2); font-size: 15px; margin-top: 6px; min-height: 22px; }
+.kpbox .btns { justify-content: center; }
+
 @media (max-width: 560px) {
   .tools { top: 10px; right: 10px; gap: 8px; }
   .tool { width: 40px; height: 40px; }
@@ -340,6 +347,16 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
         <button class="btn quiet" id="btnReport2">Report</button>
       </div>
     </div>
+    <div class="kp" id="keepPrompt" hidden>
+      <div class="kpbox">
+        <p class="kpt">Time's almost up<br><span id="kpTime">15</span>s left</p>
+        <p class="kps" id="kpStatus">Both of you need to say yes to keep going.</p>
+        <div class="btns">
+          <button class="btn go" id="kpKeep">Keep talking</button>
+          <button class="btn quiet" id="kpLet">Let it end</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="banned" class="screen center" hidden>
@@ -378,36 +395,38 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   </form>
 </dialog>
 
+<dialog id="sugDlg">
+  <form method="dialog" id="sugForm">
+    <h2>New door?</h2>
+    <p>What should we talk about? Tell us a topic and we may open a door for it.</p>
+    <label class="f" for="sugText">Your idea</label>
+    <textarea id="sugText" maxlength="200" placeholder="e.g. Books, Fitness, Photography"></textarea>
+    <div class="btns"><button class="btn go" value="go">Send idea</button><button class="btn quiet" value="cancel" formnovalidate>Cancel</button></div>
+  </form>
+</dialog>
+
 <div id="toast" hidden></div>
 
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false };
+  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false, kpOff: false };
   const LABELS = { harassment: 'Harassment or bullying', sexual: 'Sexual content', hate: 'Hate speech', spam: 'Spam or ads', minor: 'Seems underage', other: 'Something else' };
 
   /* One look per door. Colors follow the painted-door style; icons are drawn in the same stroke as the notes. */
   const ICON = {
     note: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
     moon: '<path d="M20 14.500A8 8 0 1 1 9.500 4a6.500 6.500 0 0 0 10.500 10.500z"/>',
-    tv: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/>',
     bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.500c.8.8 1 1.500 1 2.500h6c0-1 .2-1.700 1-2.500A6 6 0 0 0 12 3z"/>',
     case: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
-    flame: '<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/>',
-    cup: '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9zM17 10h2a2 2 0 0 1 0 4h-2M8 3c0 1.500 1.500 1.500 0 3M12 3c0 1.500 1.500 1.500 0 3"/>',
-    pad: '<path d="M6 8h12a4 4 0 0 1 4 4v2a3 3 0 0 1-5.500 1.600L15 14H9l-1.500 1.600A3 3 0 0 1 2 14v-2a4 4 0 0 1 4-4zM7 11v2M6 12h2M16 11.500h.01M18 12.500h.01"/>',
   };
   const LOOK = {
     music: { c: '#B3202E', ink: '#FFF8EA', icon: 'note', rot: -3 },
-    screen: { c: '#3F4C35', ink: '#FFF8EA', icon: 'tv', rot: 2 },
-    builders: { c: '#D9A03A', ink: '#2B211B', icon: 'bulb', rot: -2 },
     career: { c: '#2F4766', ink: '#FFF8EA', icon: 'case', rot: 3 },
     'late-night': { c: '#5A2D4F', ink: '#FFF8EA', icon: 'moon', rot: -2 },
-    'hot-takes': { c: '#C2521C', ink: '#FFF8EA', icon: 'flame', rot: 2 },
-    chai: { c: '#2F6B63', ink: '#FFF8EA', icon: 'cup', rot: -3 },
-    gaming: { c: '#A94670', ink: '#FFF8EA', icon: 'pad', rot: 2 },
+    suggest: { c: '#7A5C2E', ink: '#FFF8EA', icon: 'bulb', rot: 2 },
   };
-  const ORDER = ['music', 'screen', 'builders', 'career', 'late-night', 'hot-takes', 'chai', 'gaming'];
+  const ORDER = ['music', 'career', 'late-night'];
   const look = (id) => LOOK[id] || { c: '#B3202E', ink: '#FFF8EA', icon: 'note', rot: -2 };
 
   const store = {
@@ -458,9 +477,9 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     box.innerHTML = h;
   })();
 
-  /* ---------- music: plays public/audio/ambient.mp3. The button stays hidden if the file is missing. ---------- */
+  /* ---------- music: plays public/audio/ambient.mp3. First tap anywhere starts it; the button pauses/resumes. ---------- */
   (() => {
-    const bgm = $('#bgm'), btn = $('#musicBtn'); let want = store.get('corridor.music') === '1', fade = null;
+    const bgm = $('#bgm'), btn = $('#musicBtn'); let fade = null;
     const fadeTo = (v, ms, done) => {
       clearInterval(fade); const from = bgm.volume, t0 = performance.now();
       fade = setInterval(() => {
@@ -471,12 +490,24 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     const paint = (on) => { btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', on); btn.setAttribute('aria-label', on ? 'Pause ambient music' : 'Play ambient music'); };
     const start = () => { bgm.volume = 0; return bgm.play().then(() => { paint(true); fadeTo(.35, 1500); }).catch(() => paint(false)); };
     const stop = () => { fadeTo(0, 600, () => bgm.pause()); paint(false); };
-    btn.onclick = () => { want = !want; store.set('corridor.music', want ? '1' : '0'); want ? start() : stop(); };
-    fetch('audio/ambient.mp3', { method: 'HEAD' }).then((r) => {
-      if (!r.ok) return;
-      btn.hidden = false;
-      if (want) addEventListener('pointerdown', () => { if (want && bgm.paused) start(); }, { once: true });
-    }).catch(() => {});
+
+    // Button only stops / resumes. Choice is remembered.
+    btn.onclick = () => {
+      if (bgm.paused) { store.set('corridor.music', '1'); start(); }
+      else { store.set('corridor.music', '0'); stop(); }
+    };
+
+    // First tap anywhere starts the music, unless the person turned it off before.
+    const first = (e) => {
+      if (btn.contains(e.target)) return;
+      removeEventListener('click', first, true);
+      removeEventListener('keydown', first, true);
+      if (store.get('corridor.music') !== '0' && bgm.paused) start();
+    };
+    addEventListener('click', first, true);
+    addEventListener('keydown', first, true);
+
+    fetch('audio/ambient.mp3', { method: 'HEAD' }).then((r) => { if (r.ok) btn.hidden = false; }).catch(() => {});
   })();
 
   /* ---------- connection ---------- */
@@ -510,7 +541,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       case 'notice': m.care ? addSys(m.text, 'care') : toast(m.text); break;
       case 'removed': toast(m.text, 6000); S.door = null; show('corridor'); break;
       case 'extend_vote': S.theirVote = true; paintKeep(); break;
-      case 'extended': S.deadline = performance.now() + m.left; S.total = Math.max(m.left, 1); S.voted = S.theirVote = false; paintKeep(); addSys('Time added. Keep going.'); break;
+      case 'extended': S.deadline = performance.now() + m.left; S.total = Math.max(m.left, 1); S.voted = S.theirVote = false; S.kpOff = false; paintKeep(); addSys('Time added. Keep going.'); break;
       case 'ended': endChat('Time is up.'); break;
       case 'partner_left': endChat(m.reason === 'disconnect' ? S.partner + ' left.' : S.partner + ' moved on.'); break;
       case 'reported': toast('Report sent. You will not be matched with them again.', 5000); S.door = null; show('corridor'); break;
@@ -535,10 +566,21 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       el.querySelector('.door').onclick = () => openJoin(d, el);
       hall.appendChild(el);
     });
+    // Extra door: suggest a new topic.
+    const sg = slotEl({ id: 'suggest', name: 'Suggest' }, list.length);
+    const sgDoor = sg.querySelector('.door');
+    sgDoor.setAttribute('aria-label', 'Suggest a new door');
+    sgDoor.onclick = () => {
+      sg.classList.add('opening');
+      setTimeout(() => { $('#sugText').value = ''; $('#sugDlg').showModal(); }, 380);
+      $('#sugDlg').addEventListener('close', () => sg.classList.remove('opening'), { once: true });
+    };
+    hall.appendChild(sg);
     paintCounts();
   }
   function paintCounts() {
     for (const slot of document.querySelectorAll('#doors .slot')) {
+      if (slot.dataset.id === 'suggest') { slot.style.setProperty('--lit', '0'); slot.querySelector('.who').textContent = 'your idea'; continue; }
       const n = S.counts[slot.dataset.id] || 0;
       slot.style.setProperty('--lit', Math.min(1, n / 8).toFixed(2));
       slot.querySelector('.who').textContent = n === 0 ? 'empty' : n + ' inside';
@@ -666,6 +708,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     const L = look(S.door), chat = $('#chat');
     chat.style.setProperty('--c', L.c); chat.style.setProperty('--cink', L.ink);
     S.partner = m.partner; S.ended = false; S.voted = S.theirVote = false;
+    S.kpOff = false; $('#keepPrompt').hidden = true;
     S.deadline = performance.now() + m.left; S.total = m.left;
     $('#pName').textContent = m.partner; $('#pDoor').textContent = doorOf(S.door).name;
     $('#log').innerHTML = ''; $('#typing').textContent = '';
@@ -686,6 +729,8 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       $('#sillbar').classList.toggle('low', left < 20000);
       const s = Math.ceil(left / 1000);
       $('#clock').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      const kp = $('#keepPrompt');
+      if (left > 0 && left <= 15000 && !S.kpOff) { kp.hidden = false; $('#kpTime').textContent = s; } else kp.hidden = true;
     }, 250);
   }
   function paintKeep() {
@@ -693,10 +738,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     b.classList.toggle('hot', S.theirVote && !S.voted);
     b.textContent = S.voted ? 'Waiting for ' + S.partner : S.theirVote ? S.partner + ' wants to keep talking. Tap to add time' : 'Keep talking';
     b.disabled = S.voted;
+    $('#kpKeep').disabled = S.voted;
+    $('#kpStatus').textContent = S.voted ? 'Waiting for ' + S.partner + '…' : S.theirVote ? S.partner + ' wants to keep talking.' : 'Both of you need to say yes to keep going.';
   }
   function endChat(msg) {
     S.ended = true; clearInterval(tick.i);
     clearTimeout(S.actHide); $('#act').hidden = true;
+    $('#keepPrompt').hidden = true;
     $('#clock').textContent = ''; $('#sill').style.width = '0%'; $('#typing').textContent = '';
     addSys(msg);
     $('#live').hidden = true; $('#after').hidden = false; $('#btnSkip').hidden = true;
@@ -770,6 +818,16 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   $('#repForm').addEventListener('submit', (e) => {
     if (e.submitter && e.submitter.value === 'go') tx({ t: 'report', reason: (document.querySelector('input[name=reason]:checked') || {}).value || 'other', note: $('#repNote').value });
   });
+
+  /* ---------- suggest a door + 15s keep-talking prompt ---------- */
+  $('#sugForm').addEventListener('submit', (e) => {
+    if (e.submitter && e.submitter.value === 'go') {
+      const t = $('#sugText').value.trim();
+      if (t.length >= 3) tx({ t: 'suggest', text: t });
+    }
+  });
+  $('#kpKeep').onclick = () => { if (!S.voted) { S.voted = true; paintKeep(); tx({ t: 'extend' }); } };
+  $('#kpLet').onclick = () => { S.kpOff = true; $('#keepPrompt').hidden = true; };
 
   /* ---------- gate ---------- */
   $('#gateForm').addEventListener('submit', (e) => {
