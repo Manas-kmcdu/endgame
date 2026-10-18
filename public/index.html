@@ -120,6 +120,7 @@ ul.rules { margin: 0 0 6px; padding-left: 18px; color: var(--dim); line-height: 
   <section id="gate" class="screen" hidden>
     <h2>Enter the code</h2>
     <p>Corridor is for Delhi University students. Use the invite code you were given.</p>
+    <p id="gateErr" style="color:var(--bad);margin:0 0 10px" hidden>That code did not work. Check it and try again.</p>
     <form id="gateForm" style="width:100%"><input type="text" id="codeIn" placeholder="Invite code" autocomplete="off"><div class="btns"><button class="btn go">Continue</button></div></form>
   </section>
 
@@ -251,7 +252,7 @@ ul.rules { margin: 0 0 6px; padding-left: 18px; color: var(--dim); line-height: 
       case 'welcome':
         S.doors = m.doors; S.counts = m.counts; S.cfg = m.cfg;
         buildDoors(); show('corridor'); break;
-      case 'need_code': show('gate'); break;
+      case 'need_code': show('gate'); $('#gateErr').hidden = !m.wrong; break;
       case 'counts': S.counts = m.counts; paintCounts(); break;
       case 'banned': S.dead = true; $('#bannedMsg').textContent = 'Reports against your account led to a lockout until ' + new Date(m.until).toLocaleString() + '.'; show('banned'); break;
       case 'kicked': S.dead = true; show('kicked'); break;
@@ -404,7 +405,9 @@ ul.rules { margin: 0 0 6px; padding-left: 18px; color: var(--dim); line-height: 
 
   // ---------- gate ----------
   $('#gateForm').addEventListener('submit', (e) => {
-    e.preventDefault(); store.set('corridor.code', $('#codeIn').value.trim());
+    e.preventDefault();
+    if (!S.ws || S.ws.readyState !== 1) { toast('Not connected yet. Wait a few seconds and try again.'); return; }
+    store.set('corridor.code', $('#codeIn').value.trim());
     tx({ t: 'hello', clientId, code: $('#codeIn').value.trim() });
   });
 
