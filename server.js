@@ -26,10 +26,13 @@ const CFG = {
 };
 const HELPLINE = 'If things feel heavy, you can call Tele-MANAS at 14416 any time. It is free and open 24x7.';
 const REASONS = ['harassment', 'sexual', 'hate', 'spam', 'minor', 'other'];
+const ACT_START = 6, ACT_SECS = 25, ACT_GAP = 6; // activity: delay before first card, answer time, pause after each reveal
 
 const readJson = (f) => JSON.parse(fs.readFileSync(path.join(__dirname, 'data', f), 'utf8'));
 const doors = readJson('doors.json');
 const doorMap = new Map(doors.map((d) => [d.id, d]));
+// Clients get doors WITHOUT activities, so quiz answers never reach the browser early.
+const publicDoors = doors.map(({ activities, ...d }) => d);
 const keywordsFile = env.KEYWORDS_FILE || path.join(__dirname, 'data', 'keywords.json');
 const moderator = createModerator(JSON.parse(fs.readFileSync(keywordsFile, 'utf8')));
 const store = new Store(CFG.dataDir);
@@ -95,11 +98,19 @@ function startSession(a, b, doorId) {
   const door = doorMap.get(doorId);
   const s = {
     id: rid(), door: doorId, a, b, startedAt: Date.now(), endsAt: Date.now() + CFG.roundSec * 1000,
-    extend: new Set(), log: [], timer: null,
+    extend: new Set(), log: [], timer: null, act: null, actTimer: null,
   };
   s.timer = setTimeout(() => endSession(s.id, 'time'), CFG.roundSec * 1000);
   sessions.set(s.id, s);
   recent.set(pairKey(a.id, b.id), Date.now());
+
+  // one random activity from this door (quiz / debate / icebreaker / trending), shared live between the pair
+  const defs = door.activities || [];
+  if (defs.length) {
+    s.act = { def: defs[Math.random() * defs.length | 0], i: 0, picks: {}, score: { [a.id]: 0, [b.id]: 0 }, open: false };
+    s.actTimer = setTimeout(() => actItem(s.id), ACT_START * 1000);
+  }
+
   const prompt = door.prompts[Math.random() * door.prompts.length | 0];
   for (const [me, other] of [[a, b], [b, a]]) {
     me.state = 'chat'; me.sid = s.id; me.strikes = 0;
@@ -113,6 +124,7 @@ function endSession(sid, reason, by) {
   const s = sessions.get(sid);
   if (!s) return;
   clearTimeout(s.timer);
+  clearTimeout(s.actTimer);
   sessions.delete(sid);
   for (const [me, other] of [[s.a, s.b], [s.b, s.a]]) {
     me.last = { // kept so a report can still be filed right after the round ends
@@ -127,6 +139,57 @@ function endSession(sid, reason, by) {
     else send(me, { t: 'partner_left', reason: reason === 'disconnect' ? 'disconnect' : 'skip' });
   }
   broadcastCounts();
+}
+
+// ---------- door activity (shared live) ----------
+function actItem(sid) {
+  const s = sessions.get(sid);
+  if (!s || !s.act) return;
+  const A = s.act, it = A.def.items[A.i];
+  if (!it) { // all items done
+    const quiz = A.def.items.some((x) => typeof x.answer === 'number');
+    for (const [me, other] of [[s.a, s.b], [s.b, s.a]]) {
+      send(me, { t: 'act_done', quiz, mine: A.score[me.id], theirs: A.score[other.id], of: A.def.items.length });
+    }
+    s.act = null;
+    return;
+  }
+  A.picks = {}; A.open = true;
+  for (const p of [s.a, s.b]) {
+    send(p, { t: 'act_item', kind: A.def.kind, title: A.def.title, n: A.i + 1, of: A.def.items.length, q: it.q, options: it.options });
+  }
+  clearTimeout(s.actTimer);
+  s.actTimer = setTimeout(() => actReveal(sid), ACT_SECS * 1000);
+}
+
+function actReveal(sid) {
+  const s = sessions.get(sid);
+  if (!s || !s.act || !s.act.open) return;
+  const A = s.act, it = A.def.items[A.i];
+  const quiz = typeof it.answer === 'number';
+  A.open = false;
+  clearTimeout(s.actTimer);
+  if (quiz) for (const p of [s.a, s.b]) if (A.picks[p.id] === it.answer) A.score[p.id]++;
+  for (const [me, other] of [[s.a, s.b], [s.b, s.a]]) {
+    send(me, {
+      t: 'act_reveal', mine: A.picks[me.id] ?? -1, theirs: A.picks[other.id] ?? -1,
+      answer: quiz ? it.answer : null, fact: it.fact || '',
+    });
+  }
+  A.i++;
+  s.actTimer = setTimeout(() => actItem(sid), ACT_GAP * 1000);
+}
+
+function onActPick(c, m) {
+  const s = sessions.get(c.sid);
+  if (!s || !s.act || !s.act.open) return;
+  const A = s.act, it = A.def.items[A.i];
+  const p = m.pick;
+  if (!Number.isInteger(p) || p < 0 || p >= it.options.length || c.id in A.picks) return;
+  A.picks[c.id] = p;
+  const other = s.a === c ? s.b : s.a;
+  if (other.id in A.picks) return actReveal(s.id);
+  send(other, { t: 'act_partner' });
 }
 
 function removeFromQueue(c) {
@@ -171,6 +234,7 @@ function handle(c, m) {
     }
     case 'skip': return onSkip(c);
     case 'extend': return onExtend(c);
+    case 'act_pick': return onActPick(c, m);
     case 'report': return onReport(c, m);
     case 'leave': return leave(c, 'leave');
   }
@@ -189,7 +253,7 @@ function onHello(c, m) {
   const old = byId.get(id);
   if (old && old !== c) { send(old, { t: 'kicked' }); old.ws.close(); leave(old, 'disconnect'); }
   c.id = id; c.ready = true; byId.set(id, c);
-  send(c, { t: 'welcome', doors, counts: counts(), cfg: { roundSec: CFG.roundSec, maxLen: CFG.maxLen, reasons: REASONS } });
+  send(c, { t: 'welcome', doors: publicDoors, counts: counts(), cfg: { roundSec: CFG.roundSec, maxLen: CFG.maxLen, reasons: REASONS } });
 }
 
 function onJoin(c, m) {
