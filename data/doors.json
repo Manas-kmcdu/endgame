@@ -24,7 +24,7 @@
     "What did you do the last time you were truly bored?",
     "Pitch me a plan for the next hour. Go."
   ]
-}
+},
   { "id": "music", "name": "Music", "line": "Playlists, gigs, one song on repeat", "hue": 340,
     "prompts": ["What's on repeat this week?", "Last gig or fest you went to?", "A song you'd defend to anyone?", "Which artist should everyone hear once?"],
     "activities": [
