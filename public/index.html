@@ -15,7 +15,7 @@
 })();
 </script>
 <style>
-@font-face { font-family: "Instrument Serif"; src: url(fonts/instrument-serif-latin-400-normal.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Caveat Brush"; src: url(fonts/caveat-brush-latin-400-normal.woff2) format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-400-normal.woff2) format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-500-normal.woff2) format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Hanken Grotesk"; src: url(fonts/hanken-grotesk-latin-600-normal.woff2) format("woff2"); font-weight: 600; font-display: swap; }
@@ -30,10 +30,12 @@
   --red: #D62F45;
   --on-red: #FFF8EA;
   --lamp: #F7C85A;
+  --tbody: #EFE3CB; --ttrim: #DCCBA8; --tred: #C8323E; --tskirt: #5A4A3C; --tframe: #4A3F36; --tglow1: #FBE3A8; --tglow2: #E9B65A; --tpax: #8A7C6E;
+  --floor1: #EEDDBC; --floor2: #DEC79E; --strip: #E3B93C; --pil1: #DDCCA5; --pil2: #C6B185; --ceil: #5C4B3B;
   --note: #F7ECD3;
   --floor: #E2D3B6;
   --shade: rgb(60 35 20 / .2);
-  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --brush: "Caveat Brush", "Segoe Print", cursive;
   --sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
@@ -48,6 +50,8 @@
   --on-red: #2A0E13;
   --note: #EBDDC3;
   --floor: #0E0A08;
+  --tbody: #4B4037; --ttrim: #3B322B; --tred: #8E2A34; --tskirt: #1D1612; --tframe: #120E0B; --tglow1: #E7B25A; --tglow2: #B9782A; --tpax: #17120E;
+  --floor1: #241C16; --floor2: #16110D; --strip: #8F7122; --pil1: #3A3027; --pil2: #2A221B; --ceil: #0E0A08;
   --shade: rgb(0 0 0 / .55);
   color-scheme: dark;
 }
@@ -86,9 +90,9 @@ h1, h2, h3, p { margin: 0; }
 main { position: relative; z-index: 1; }
 
 /* ---------- masthead ---------- */
-.mast { position: relative; text-align: center; padding: clamp(34px, 6vh, 64px) 20px 0; }
-.logo { position: relative; display: inline-block; font: 400 clamp(88px, 15vw, 164px)/.86 var(--serif); letter-spacing: -.025em; color: var(--red); clip-path: inset(0 100% 0 0); }
-.tag { position: relative; display: inline-block; margin-top: 10px; font: 400 clamp(26px, 4.2vw, 34px)/1.1 var(--serif); }
+.mast { position: relative; z-index: 3; text-align: center; padding: clamp(34px, 6vh, 64px) 20px 0; }
+.logo { position: relative; display: inline-block; font: 400 clamp(70px, 13vw, 132px)/.9 var(--brush); color: var(--red); letter-spacing: .01em; transform: rotate(-2deg); -webkit-text-stroke: 1.5px var(--red); filter: url(#rough); clip-path: inset(0 100% 0 0); }
+.tag { position: relative; display: inline-block; margin-top: 12px; font: 500 clamp(17px, 2.2vw, 21px)/1.2 var(--sans); letter-spacing: .03em; }
 .tag svg { position: absolute; left: 0; bottom: -9px; width: 100%; height: 4px; overflow: visible; }
 .tag path { fill: none; stroke: var(--ink); stroke-width: 1; stroke-linecap: round; stroke-dasharray: 320; stroke-dashoffset: 320; }
 .how { margin: 22px auto 0; max-width: 34ch; color: var(--ink2); font-size: 16px; }
@@ -99,9 +103,40 @@ main { position: relative; z-index: 1; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fadeIn { from { opacity: 0; } }
 
+/* ---------- the station: wall, pillar, train, platform ---------- */
+#corridor { position: relative; overflow: hidden; }
+.scene { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.ceiling { position: absolute; top: 0; left: 0; right: 0; height: 18px; background: var(--ceil); box-shadow: 0 8px 18px -8px rgb(0 0 0 / .3); }
+.pillar { position: absolute; left: 0; top: 0; bottom: 0; width: clamp(78px, 8.5vw, 128px); background: linear-gradient(90deg, var(--pil2), var(--pil1) 28%, var(--pil1) 72%, var(--pil2)); box-shadow: 8px 0 22px -8px var(--shade); transform: translate3d(calc(var(--sx, 0) * -1px), 0, 0); }
+.pillar::before { content: ""; position: absolute; left: 0; right: 0; bottom: 290px; height: 34px; background: var(--tred); }
+.psign { position: absolute; left: 0; top: 168px; width: calc(100% + 26px); padding: 9px 12px 8px; background: #17110D; color: #F6EEDC; border-radius: 2px; box-shadow: 0 6px 14px -4px rgb(0 0 0 / .4); }
+.psign b { display: block; font: 600 clamp(14px, 1.5vw, 19px)/1.1 var(--sans); letter-spacing: .01em; }
+.psign svg { display: block; width: 22px; height: 16px; margin-top: 4px; fill: none; stroke: #F6EEDC; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.stage { position: absolute; inset: 0; pointer-events: none; }
+.train { z-index: 0; position: absolute; right: 0; bottom: calc(var(--fl) - 22px); height: var(--th); width: calc(var(--th) * 7.366); will-change: transform; animation: arrive 40s linear -10s infinite; }
+.train svg { display: block; width: 100%; height: 100%; }
+.train::after { content: ""; position: absolute; left: 0; width: 92%; top: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent 0 11px, rgb(255 255 255 / .2) 11px 13px); opacity: 0; animation: streak 40s linear -10s infinite; }
+@keyframes arrive {
+  0% { transform: translate3d(-103%, 0, 0); animation-timing-function: cubic-bezier(.12, .55, .22, 1); }
+  18% { transform: translate3d(0, 0, 0); }
+  72% { transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(.65, 0, .85, .55); }
+  92% { transform: translate3d(103%, 0, 0); }
+  100% { transform: translate3d(103%, 0, 0); }
+}
+@keyframes streak { 0% { opacity: .55; } 16% { opacity: .08; } 19%, 72% { opacity: 0; } 90% { opacity: .55; } 100% { opacity: .55; } }
+.tb { fill: var(--tbody); } .tt { fill: var(--ttrim); } .tr { fill: var(--tred); } .ts { fill: var(--tskirt); } .tf { fill: var(--tframe); } .tp { fill: var(--tpax); }
+.floor { z-index: 2; position: absolute; left: 0; right: 0; top: calc(100% - var(--fl)); height: 900px; background:
+  linear-gradient(rgb(0 0 0 / .2), transparent) 0 0 / 100% 14px no-repeat,
+  linear-gradient(var(--strip), var(--strip)) 0 14px / 100% 12px no-repeat,
+  repeating-linear-gradient(90deg, rgb(0 0 0 / .07) 0 2px, transparent 2px 150px) 0 26px / 100% 100%,
+  repeating-linear-gradient(180deg, rgb(0 0 0 / .06) 0 2px, transparent 2px 70px) 0 26px / 100% 100%,
+  linear-gradient(180deg, var(--floor1), var(--floor2) 120px, var(--floor1) 900px); }
+.floor::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 12px; background: radial-gradient(circle, rgb(0 0 0 / .22) 1.6px, transparent 2.2px) 0 0 / 14px 12px; }
+@media (max-width: 700px) { .pillar { display: none; } }
+
 /* ---------- the hall ---------- */
-.hallwrap { position: relative; flex: 1; display: flex; align-items: center; min-height: 440px; margin-top: 8px; }
-.hall { position: relative; display: flex; align-items: flex-end; gap: 46px; width: 100%; overflow-x: auto; padding: 34px calc(50% - 90px) 40px clamp(56px, 8vw, 120px); scroll-snap-type: x proximity; scrollbar-width: none; background: linear-gradient(var(--line), var(--line)) left bottom 96px / 100% 2px no-repeat, linear-gradient(var(--floor), var(--floor)) left bottom 72px / 100% 26px no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); outline-offset: -6px; }
+.hallwrap { --fl: 92px; --th: 410px; position: relative; flex: 1; display: flex; align-items: flex-end; min-height: 520px; margin-top: 8px; }
+.hall { position: relative; display: flex; align-items: flex-end; gap: clamp(56px, 6vw, 96px); width: 100%; overflow-x: auto; padding: 34px calc(50% - 90px) 40px clamp(130px, 15vw, 240px); scroll-snap-type: x proximity; scrollbar-width: none; z-index: 3; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); outline-offset: -6px; }
 .hall::-webkit-scrollbar { display: none; }
 .arrow { position: absolute; top: 44%; z-index: 5; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper); display: grid; place-items: center; padding: 0; transition: transform .25s; }
 .arrow:hover { transform: scale(1.1); }
@@ -121,7 +156,7 @@ main { position: relative; z-index: 1; }
 .leaf::after { top: 60%; height: 30%; }
 .note { position: absolute; z-index: 2; left: 50%; top: 14%; width: 62%; padding: 14px 8px 10px; background: var(--note); border-radius: 3px; color: #2B211B; text-align: center; transform: translateX(-50%) rotate(var(--rot, -3deg)); box-shadow: 0 2px 6px rgb(0 0 0 / .22); transform-origin: 50% 0; transition: transform .6s ease; }
 .note::before { content: ""; position: absolute; left: 50%; top: -8px; width: 34px; height: 14px; background: rgb(196 140 110 / .75); transform: translateX(-50%) rotate(-5deg); }
-.note b { display: block; font: 400 25px/1 var(--serif); letter-spacing: .005em; }
+.note b { display: block; font: 600 18px/1.12 var(--sans); letter-spacing: .005em; }
 .note svg { display: block; margin: 5px auto 0; width: 24px; height: 24px; fill: none; stroke: #2B211B; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .plate { position: absolute; right: 11px; top: 57%; width: 13px; height: 40px; border-radius: 3px; background: linear-gradient(90deg, #EBC25A, #C48F2A); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .12); }
 .plate i { position: absolute; left: -3px; top: 11px; width: 19px; height: 19px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #4A3A2E, #17110D 70%); box-shadow: 0 1px 3px rgb(0 0 0 / .35); }
@@ -133,7 +168,7 @@ main { position: relative; z-index: 1; }
 .slot.opening .door { transform: rotateY(0deg) scale(1.05); }
 .sill { display: block; width: 100%; height: 7px; margin-top: 9px; border-radius: 4px; background: var(--lamp); opacity: calc(.1 + var(--lit, 0) * .9); box-shadow: 0 0 calc(var(--lit, 0) * 22px) calc(var(--lit, 0) * 4px) rgb(247 200 90 / .6); transition: opacity .8s, box-shadow .8s; }
 .who { margin-top: 12px; font: 500 14px/1 var(--sans); letter-spacing: .04em; color: var(--ink2); min-height: 16px; }
-.hallnote { text-align: center; padding: 0 20px 26px; color: var(--ink2); font-size: 15px; }
+.hallnote { position: relative; z-index: 3; text-align: center; padding: 0 20px 26px; color: var(--ink2); font-size: 15px; }
 
 /* ---------- buttons, dialogs, inputs ---------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 600 15px/1 var(--sans); letter-spacing: .01em; transition: transform .2s, background-color .3s; }
@@ -146,20 +181,27 @@ input[type=text], textarea { width: 100%; background: var(--bg); color: var(--in
 input[type=text]:focus, textarea:focus { outline: none; border-color: var(--ink); }
 textarea { resize: vertical; min-height: 66px; }
 label.f { display: block; margin: 16px 0 6px; font: 600 15px var(--sans); }
-dialog { border: 1px solid var(--ink); background: var(--paper); color: var(--ink); border-radius: 22px; padding: 26px; width: min(430px, calc(100vw - 28px)); box-shadow: 0 24px 60px -12px var(--shade); }
+dialog { max-height: calc(100dvh - 28px); overflow-y: auto; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); border-radius: 22px; padding: 26px; width: min(430px, calc(100vw - 28px)); box-shadow: 0 24px 60px -12px var(--shade); }
 dialog::backdrop { background: rgb(20 12 8 / .55); }
 dialog[open] { animation: pop .35s cubic-bezier(.2, .9, .3, 1.2); }
 @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.96) rotate(-1deg); } }
-dialog h2 { font: 400 46px/1 var(--serif); color: var(--red); margin-bottom: 6px; }
+dialog h2 { font: 600 30px/1.1 var(--sans); letter-spacing: -.01em; color: var(--red); margin-bottom: 6px; }
 dialog p { color: var(--ink2); }
 ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height: 1.55; font-size: 16px; }
+.favs { display: grid; gap: 8px; margin-top: 10px; }
+.favhint { margin-top: 14px; font: 600 15px var(--sans); color: var(--ink); }
+.favsub { font-size: 14px; margin-bottom: 2px; }
+.m.fav { max-width: 86%; padding: 12px 16px; border-radius: 16px; }
+.m.fav b { display: block; margin-bottom: 6px; font: 600 11.5px var(--sans); letter-spacing: .09em; text-transform: uppercase; opacity: .78; }
+.m.fav ol { margin: 0; padding-left: 20px; }
+.m.fav li { padding: 1px 0; }
 .reasons { display: grid; gap: 8px; margin-top: 14px; }
 .reasons label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
 .reasons input { accent-color: var(--red); width: 18px; height: 18px; }
 
 /* ---------- centered screens ---------- */
 .center { align-items: center; justify-content: center; text-align: center; padding: 70px 20px 30px; max-width: 560px; margin: 0 auto; }
-.center h2 { font: 400 clamp(46px, 9vw, 68px)/1 var(--serif); color: var(--red); margin: 12px 0 8px; }
+.center h2 { font: 600 clamp(30px, 6vw, 40px)/1.1 var(--sans); letter-spacing: -.01em; color: var(--red); margin: 12px 0 8px; }
 .center p { color: var(--ink2); }
 .center form { width: 100%; text-align: left; margin-top: 14px; }
 .err { color: var(--red); font-weight: 600; margin-top: 12px; }
@@ -175,7 +217,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 #chat { --c: #B3202E; --cink: #FFF8EA; height: 100dvh; min-height: 0; max-width: 780px; margin: 0 auto; background: var(--paper); border-inline: 1px solid var(--line); position: relative; transition: background-color .5s; }
 .top { display: flex; align-items: center; gap: 12px; padding: 14px 76px 10px 18px; }
 .top .t { flex: 1; min-width: 0; }
-.pname { font: 400 44px/1 var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pname { font: 600 26px/1.15 var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dchip { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; font: 600 14px var(--sans); color: var(--ink2); }
 .dchip i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
 .clock { font: 500 17px/1 var(--sans); letter-spacing: .04em; color: var(--ink2); min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -194,7 +236,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .ah .chip { background: var(--c); color: var(--cink); padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
 .ah .an { margin-left: auto; }
 .ah .link { font-size: 13px; }
-.act .aq { font: 400 27px/1.15 var(--serif); margin: 10px 0 12px; color: var(--ink); }
+.act .aq { font: 600 20px/1.25 var(--sans); margin: 10px 0 12px; color: var(--ink); }
 .ao { display: grid; gap: 8px; }
 .opt { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); font: 600 16px var(--sans); transition: transform .15s, border-color .2s; }
 .opt:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--ink); }
@@ -212,7 +254,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .m.them { align-self: flex-start; background: var(--paper2); border-bottom-left-radius: 5px; }
 .m.me { align-self: flex-end; background: var(--c); color: var(--cink); border-bottom-right-radius: 5px; }
 .sys { align-self: center; text-align: center; max-width: 92%; color: var(--ink2); font: 400 14.5px/1.4 var(--sans); }
-.sys.prompt { position: relative; margin: 8px 0 6px; padding: 16px 20px 12px; background: var(--note); color: #2B211B; border-radius: 3px; font: 400 26px/1.15 var(--serif); transform: rotate(-.8deg); box-shadow: 0 6px 16px -4px var(--shade); }
+.sys.prompt { position: relative; margin: 8px 0 6px; padding: 16px 20px 12px; background: var(--note); color: #2B211B; border-radius: 3px; font: 500 18px/1.35 var(--sans); transform: rotate(-.8deg); box-shadow: 0 6px 16px -4px var(--shade); }
 .sys.prompt::before { content: ""; position: absolute; left: 50%; top: -9px; width: 40px; height: 15px; background: rgb(196 140 110 / .75); transform: translateX(-50%) rotate(3deg); }
 .sys.warn { color: var(--red); font-weight: 600; }
 .sys.care { color: var(--ink); background: var(--paper2); border-radius: 12px; padding: 8px 14px; font: 400 16px/1.4 var(--sans); }
@@ -232,7 +274,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 /* ---------- 15-second keep-talking prompt ---------- */
 .kp { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; pointer-events: none; }
 .kpbox { pointer-events: auto; background: var(--paper); border: 1px solid var(--ink); border-radius: 22px; padding: 22px 24px; text-align: center; max-width: 340px; box-shadow: 0 24px 60px -12px var(--shade); animation: pop .35s cubic-bezier(.2, .9, .3, 1.2); }
-.kpbox .kpt { font: 400 34px/1.1 var(--serif); color: var(--ink); }
+.kpbox .kpt { font: 600 24px/1.25 var(--sans); color: var(--ink); }
 .kpbox .kps { color: var(--ink2); font-size: 15px; margin-top: 6px; min-height: 22px; }
 .kpbox .btns { justify-content: center; }
 
@@ -241,11 +283,12 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   .tool { width: 40px; height: 40px; }
   .slot { --dw: 148px; --dh: 318px; }
   .hall { gap: 34px; padding-inline: calc(50% - 74px); }
+  .hallwrap { --th: 370px; --fl: 84px; min-height: 470px; }
   .top { padding-right: 70px; }
-  .pname { font-size: 36px; }
+  .pname { font-size: 22px; }
   #chat { border-inline: 0; }
   .act { margin: 10px 12px 0; padding: 12px; }
-  .act .aq { font-size: 24px; margin: 8px 0 10px; }
+  .act .aq { font-size: 18px; margin: 8px 0 10px; }
   #wait .slot { --dw: 104px; --dh: 214px; }
   #wait .act { margin: 14px 0 0; }
 }
@@ -256,6 +299,9 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <filter id="rough" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/></filter>
+</defs></svg>
 <div class="motes" id="motes" aria-hidden="true"></div>
 <div id="offline" hidden>Connection lost. Reconnecting…</div>
 
@@ -283,6 +329,10 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   </section>
 
   <section id="corridor" class="screen" hidden>
+    <div class="scene" aria-hidden="true">
+      <div class="ceiling"></div>
+      <div class="pillar"><div class="psign"><b>Corridor</b><svg viewBox="0 0 22 16"><path d="M1 8h19M13 2l7 6-7 6"/></svg></div></div>
+    </div>
     <header class="mast">
       <h1 class="logo">Corridor</h1><br>
       <p class="tag">talk to people anytime
@@ -292,6 +342,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     </header>
     <div class="hallwrap">
       <button class="arrow l" id="prev" aria-label="Scroll doors left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="stage" aria-hidden="true"><div class="train" id="train"></div><div class="floor"></div></div>
       <div class="hall" id="doors" tabindex="0" role="group" aria-label="Doors"></div>
       <button class="arrow r" id="next" aria-label="Scroll doors right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
@@ -362,6 +413,15 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     <p id="joinLine"></p>
     <label class="f" for="handleIn">Your name inside</label>
     <input type="text" id="handleIn" maxlength="24" autocomplete="off">
+    <div id="favBox" hidden>
+      <p class="favhint">Your current favourites</p>
+      <p class="favsub">Shared in the chat as soon as you match. Leave blank to skip.</p>
+      <div class="favs">
+        <input type="text" id="fav1" maxlength="40" autocomplete="off" placeholder="A song on repeat" aria-label="Favourite 1">
+        <input type="text" id="fav2" maxlength="40" autocomplete="off" placeholder="An artist you love" aria-label="Favourite 2">
+        <input type="text" id="fav3" maxlength="40" autocomplete="off" placeholder="An album or playlist" aria-label="Favourite 3">
+      </div>
+    </div>
     <ul class="rules">
       <li>Text only. Phone numbers and links are hidden.</li>
       <li>Be kind. Rude messages get blocked, then you're removed.</li>
@@ -397,7 +457,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const S = { ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false, kpOff: false };
+  const S = { favs: [], ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false, kpOff: false };
   const LABELS = { harassment: 'Harassment or bullying', sexual: 'Sexual content', hate: 'Hate speech', spam: 'Spam or ads', minor: 'Seems underage', other: 'Something else' };
 
   /* One look per door. Colors follow the painted-door style; icons are drawn in the same stroke as the notes. */
@@ -464,9 +524,9 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     box.innerHTML = h;
   })();
 
-  /* ---------- music: plays public/audio/ambient.mp3. First tap anywhere starts it; the button pauses/resumes. ---------- */
+  /* ---------- music: plays public/audio/ambient.mp3. The first tap or key press anywhere starts it; the button pauses/resumes. ---------- */
   (() => {
-    const bgm = $('#bgm'), btn = $('#musicBtn'); let fade = null;
+    const bgm = $('#bgm'), btn = $('#musicBtn'); let fade = null, armed = true;
     const fadeTo = (v, ms, done) => {
       clearInterval(fade); const from = bgm.volume, t0 = performance.now();
       fade = setInterval(() => {
@@ -475,26 +535,56 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       }, 40);
     };
     const paint = (on) => { btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', on); btn.setAttribute('aria-label', on ? 'Pause ambient music' : 'Play ambient music'); };
-    const start = () => { bgm.volume = 0; return bgm.play().then(() => { paint(true); fadeTo(.35, 1500); }).catch(() => paint(false)); };
+    const GEST = ['click', 'keydown', 'touchend'];
+    const disarm = () => { armed = false; for (const g of GEST) removeEventListener(g, first, true); };
+    // Starts right away: the button shows "playing" on the tap, and the sound fades in as soon as the file delivers data.
+    const start = () => {
+      if (!bgm.paused) return Promise.resolve(true);
+      bgm.volume = 0; paint(true);
+      return bgm.play().then(() => { fadeTo(.35, 1500); return true; }).catch(() => { paint(false); return false; });
+    };
     const stop = () => { fadeTo(0, 600, () => bgm.pause()); paint(false); };
 
-    // Button only stops / resumes. Choice is remembered.
     btn.onclick = () => {
-      if (bgm.paused) { store.set('corridor.music', '1'); start(); }
-      else { store.set('corridor.music', '0'); stop(); }
+      if (bgm.paused) { store.set('corridor.music', '1'); start().then((ok) => ok && disarm()); }
+      else { store.set('corridor.music', '0'); stop(); disarm(); }
     };
+    // First gesture anywhere starts the music, unless the person turned it off before. Stays armed until playback really starts.
+    function first(e) {
+      if (!armed || btn.contains(e.target)) return;
+      if (store.get('corridor.music') === '0') { disarm(); return; }
+      start().then((ok) => ok && disarm());
+    }
+    for (const g of GEST) addEventListener(g, first, true);
+    bgm.addEventListener('error', () => paint(false));
 
-    // First tap anywhere starts the music, unless the person turned it off before.
-    const first = (e) => {
-      if (btn.contains(e.target)) return;
-      removeEventListener('click', first, true);
-      removeEventListener('keydown', first, true);
-      if (store.get('corridor.music') !== '0' && bgm.paused) start();
+    // Only show the button if the track exists, and fetch it ahead of time so the first tap plays instantly.
+    fetch('audio/ambient.mp3', { method: 'HEAD' }).then((r) => { if (r.ok) { btn.hidden = false; bgm.preload = 'auto'; bgm.load(); } }).catch(() => {});
+  })();
+
+  /* ---------- the train: five cars and a nose, drawn once, reused ---------- */
+  (() => {
+    const win = (x, k) => {
+      const pax = k % 4 === 3 ? '' : `<circle class="tp" cx="${x + 46}" cy="${150 + (k % 3) * 6}" r="14"/><path class="tp" d="M${x + 14} 242 v-44 q0-28 32-28 q32 0 32 28 v44z"/>`;
+      return `<g><rect class="tf" x="${x - 7}" y="73" width="106" height="176" rx="22"/><rect x="${x}" y="80" width="92" height="162" rx="16" fill="url(#tg)"/>${pax}</g>`;
     };
-    addEventListener('click', first, true);
-    addEventListener('keydown', first, true);
-
-    fetch('audio/ambient.mp3', { method: 'HEAD' }).then((r) => { if (r.ok) btn.hidden = false; }).catch(() => {});
+    let cars = '';
+    for (let c = 0; c < 5; c++) cars += `<use href="#car" x="${c * 560}"/>`;
+    const wins = [30, 150, 322, 442].map((x, i) => win(x, i)).join('');
+    $('#train').innerHTML = `<svg viewBox="0 0 3020 410" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><defs>
+      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--tglow1)"/><stop offset="1" style="stop-color:var(--tglow2)"/></linearGradient>
+      <symbol id="car" viewBox="0 0 560 410" width="560" height="410">
+        <rect class="tb" width="560" height="410"/><rect class="tt" width="560" height="22"/>
+        <rect class="tr" y="36" width="560" height="14"/><rect class="tr" y="262" width="560" height="58"/><rect class="ts" y="372" width="560" height="38"/>
+        <rect class="tt" x="248" y="60" width="3" height="312"/><rect class="tt" x="309" y="60" width="3" height="312"/>
+        ${wins}
+      </symbol>
+      <symbol id="nose" viewBox="0 0 220 410" width="220" height="410">
+        <path class="tb" d="M0 0H96C170 0 212 46 218 132L222 410H0Z"/><path class="tt" d="M0 0H96C132 0 160 10 180 26L180 22H0Z"/>
+        <path class="tf" d="M60 70H128C168 70 192 96 196 150V240H60Z"/><path d="M70 80H124C158 80 180 102 184 150V236H70Z" fill="url(#tg)" opacity=".5"/>
+        <rect class="tr" y="262" width="222" height="58"/><rect class="tr" y="36" width="170" height="14"/><rect class="ts" y="372" width="222" height="38"/>
+        <circle cx="196" cy="290" r="12" fill="#FFF3C4"/>
+      </symbol></defs>${cars}<use href="#nose" x="2800"/></svg>`;
   })();
 
   /* ---------- connection ---------- */
@@ -601,6 +691,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       s.querySelector('.door').style.setProperty('--ry', (d * -17).toFixed(1) + 'deg');
       s.style.setProperty('--ty', (Math.abs(d) * 10).toFixed(1) + 'px');
     }
+    $('#corridor').style.setProperty('--sx', hall.scrollLeft);
   }
   const queueTilt = () => { if (!raf) raf = requestAnimationFrame(tilt); };
   $('#doors').addEventListener('scroll', queueTilt, { passive: true });
@@ -615,6 +706,12 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   /* ---------- join ---------- */
   function openJoin(d, slot) {
     S.pending = d;
+    const music = d.id === 'music';
+    $('#favBox').hidden = !music;
+    if (music) {
+      let f = []; try { f = JSON.parse(store.get('corridor.favs') || '[]'); } catch {}
+      ['#fav1', '#fav2', '#fav3'].forEach((q, i) => { $(q).value = f[i] || ''; });
+    }
     slot.classList.add('opening');
     $('#joinTitle').textContent = d.name;
     $('#joinLine').textContent = d.line + '.';
@@ -627,6 +724,8 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       const h = $('#handleIn').value.trim() || randName();
       store.set('corridor.handle', h);
       S.door = S.pending.id;
+      S.favs = S.door === 'music' ? ['#fav1', '#fav2', '#fav3'].map((q) => $(q).value.replace(/[·|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40)).filter(Boolean) : [];
+      if (S.door === 'music') store.set('corridor.favs', JSON.stringify(S.favs));
       tx({ t: 'join', door: S.door, handle: h });
     }
   });
@@ -716,10 +815,21 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     $('#log').innerHTML = ''; $('#typing').textContent = '';
     clearTimeout(S.actHide); $('#act').hidden = true; $('#quizCard').hidden = true;
     addSys(m.prompt, 'prompt');
+    if (S.door === 'music' && S.favs.length) { const me = S.partner; setTimeout(() => { if (!S.ended && S.partner === me) tx({ t: 'msg', text: FAV + S.favs.join(' · ') }); }, 500); }
     $('#live').hidden = false; $('#after').hidden = true; $('#btnSkip').hidden = false;
     paintKeep(); show('chat'); tick(); $('#input').focus();
   }
-  function addMsg(who, text) { const d = document.createElement('div'); d.className = 'm ' + who; d.textContent = text; $('#log').appendChild(d); scroll(); }
+  const FAV = 'Current favourites: ';
+  function addMsg(who, text) {
+    const d = document.createElement('div');
+    if (text.startsWith(FAV)) {
+      d.className = 'm fav ' + who;
+      const ol = document.createElement('ol');
+      for (const t of text.slice(FAV.length).split(' · ')) if (t.trim()) { const li = document.createElement('li'); li.textContent = t.trim(); ol.appendChild(li); }
+      d.append(mk('b', '', 'Current favourites'), ol);
+    } else { d.className = 'm ' + who; d.textContent = text; }
+    $('#log').appendChild(d); scroll();
+  }
   function addSys(text, cls) { const d = document.createElement('div'); d.className = 'sys ' + (cls || ''); d.textContent = text; $('#log').appendChild(d); scroll(); }
   const scroll = () => { const l = $('#log'); l.scrollTop = l.scrollHeight; };
   function tick() {
