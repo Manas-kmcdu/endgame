@@ -30,8 +30,7 @@
   --red: #D62F45;
   --on-red: #FFF8EA;
   --lamp: #F7C85A;
-  --tbody: #EFE3CB; --ttrim: #DCCBA8; --tred: #C8323E; --tskirt: #5A4A3C; --tframe: #4A3F36; --tglow1: #FBE3A8; --tglow2: #E9B65A; --tpax: #8A7C6E;
-  --floor1: #EEDDBC; --floor2: #DEC79E; --strip: #E3B93C; --pil1: #DDCCA5; --pil2: #C6B185; --ceil: #5C4B3B;
+  --rope: #9B7B50; --rope2: #C9AB7C;
   --note: #F7ECD3;
   --floor: #E2D3B6;
   --shade: rgb(60 35 20 / .2);
@@ -50,8 +49,7 @@
   --on-red: #2A0E13;
   --note: #EBDDC3;
   --floor: #0E0A08;
-  --tbody: #4B4037; --ttrim: #3B322B; --tred: #8E2A34; --tskirt: #1D1612; --tframe: #120E0B; --tglow1: #E7B25A; --tglow2: #B9782A; --tpax: #17120E;
-  --floor1: #241C16; --floor2: #16110D; --strip: #8F7122; --pil1: #3A3027; --pil2: #2A221B; --ceil: #0E0A08;
+  --rope: #7C6646; --rope2: #5D4A31;
   --shade: rgb(0 0 0 / .55);
   color-scheme: dark;
 }
@@ -103,40 +101,9 @@ main { position: relative; z-index: 1; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fadeIn { from { opacity: 0; } }
 
-/* ---------- the station: wall, pillar, train, platform ---------- */
-#corridor { position: relative; overflow: hidden; }
-.scene { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.ceiling { position: absolute; top: 0; left: 0; right: 0; height: 18px; background: var(--ceil); box-shadow: 0 8px 18px -8px rgb(0 0 0 / .3); }
-.pillar { position: absolute; left: 0; top: 0; bottom: 0; width: clamp(78px, 8.5vw, 128px); background: linear-gradient(90deg, var(--pil2), var(--pil1) 28%, var(--pil1) 72%, var(--pil2)); box-shadow: 8px 0 22px -8px var(--shade); transform: translate3d(calc(var(--sx, 0) * -1px), 0, 0); }
-.pillar::before { content: ""; position: absolute; left: 0; right: 0; bottom: 290px; height: 34px; background: var(--tred); }
-.psign { position: absolute; left: 0; top: 168px; width: calc(100% + 26px); padding: 9px 12px 8px; background: #17110D; color: #F6EEDC; border-radius: 2px; box-shadow: 0 6px 14px -4px rgb(0 0 0 / .4); }
-.psign b { display: block; font: 600 clamp(14px, 1.5vw, 19px)/1.1 var(--sans); letter-spacing: .01em; }
-.psign svg { display: block; width: 22px; height: 16px; margin-top: 4px; fill: none; stroke: #F6EEDC; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.stage { position: absolute; inset: 0; pointer-events: none; }
-.train { z-index: 0; position: absolute; right: 0; bottom: calc(var(--fl) - 22px); height: var(--th); width: calc(var(--th) * 7.366); will-change: transform; animation: arrive 40s linear -10s infinite; }
-.train svg { display: block; width: 100%; height: 100%; }
-.train::after { content: ""; position: absolute; left: 0; width: 92%; top: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent 0 11px, rgb(255 255 255 / .2) 11px 13px); opacity: 0; animation: streak 40s linear -10s infinite; }
-@keyframes arrive {
-  0% { transform: translate3d(-103%, 0, 0); animation-timing-function: cubic-bezier(.12, .55, .22, 1); }
-  18% { transform: translate3d(0, 0, 0); }
-  72% { transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(.65, 0, .85, .55); }
-  92% { transform: translate3d(103%, 0, 0); }
-  100% { transform: translate3d(103%, 0, 0); }
-}
-@keyframes streak { 0% { opacity: .55; } 16% { opacity: .08; } 19%, 72% { opacity: 0; } 90% { opacity: .55; } 100% { opacity: .55; } }
-.tb { fill: var(--tbody); } .tt { fill: var(--ttrim); } .tr { fill: var(--tred); } .ts { fill: var(--tskirt); } .tf { fill: var(--tframe); } .tp { fill: var(--tpax); }
-.floor { z-index: 2; position: absolute; left: 0; right: 0; top: calc(100% - var(--fl)); height: 900px; background:
-  linear-gradient(rgb(0 0 0 / .2), transparent) 0 0 / 100% 14px no-repeat,
-  linear-gradient(var(--strip), var(--strip)) 0 14px / 100% 12px no-repeat,
-  repeating-linear-gradient(90deg, rgb(0 0 0 / .07) 0 2px, transparent 2px 150px) 0 26px / 100% 100%,
-  repeating-linear-gradient(180deg, rgb(0 0 0 / .06) 0 2px, transparent 2px 70px) 0 26px / 100% 100%,
-  linear-gradient(180deg, var(--floor1), var(--floor2) 120px, var(--floor1) 900px); }
-.floor::before { content: ""; position: absolute; left: 0; right: 0; top: 14px; height: 12px; background: radial-gradient(circle, rgb(0 0 0 / .22) 1.6px, transparent 2.2px) 0 0 / 14px 12px; }
-@media (max-width: 700px) { .pillar { display: none; } }
-
 /* ---------- the hall ---------- */
-.hallwrap { --fl: 92px; --th: 410px; position: relative; flex: 1; display: flex; align-items: flex-end; min-height: 520px; margin-top: 8px; }
-.hall { position: relative; display: flex; align-items: flex-end; gap: clamp(56px, 6vw, 96px); width: 100%; overflow-x: auto; padding: 34px calc(50% - 90px) 40px clamp(130px, 15vw, 240px); scroll-snap-type: x proximity; scrollbar-width: none; z-index: 3; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); outline-offset: -6px; }
+.hallwrap { position: relative; flex: 1; display: flex; align-items: center; min-height: 480px; margin-top: 8px; }
+.hall { --gap: clamp(56px, 6vw, 96px); justify-content: safe center; position: relative; display: flex; align-items: flex-start; gap: var(--gap); width: 100%; overflow-x: auto; padding: 8px clamp(56px, 8vw, 120px) 40px; scroll-snap-type: x proximity; scrollbar-width: none; z-index: 3; -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); outline-offset: -6px; }
 .hall::-webkit-scrollbar { display: none; }
 .arrow { position: absolute; top: 44%; z-index: 5; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper); display: grid; place-items: center; padding: 0; transition: transform .25s; }
 .arrow:hover { transform: scale(1.1); }
@@ -144,9 +111,21 @@ main { position: relative; z-index: 1; }
 .arrow.l { left: 14px; } .arrow.r { right: 14px; }
 @media (hover: none) { .arrow { display: none; } }
 
-.slot { --dw: 168px; --dh: 350px; flex: none; width: var(--dw); scroll-snap-align: center; perspective: 1000px; transform: translateY(var(--ty, 0px)); display: flex; flex-direction: column; align-items: center; }
+.slot { --dw: 168px; --dh: 350px; flex: none; width: var(--dw); scroll-snap-align: center; position: relative; padding-top: 36px; display: flex; flex-direction: column; align-items: center; }
 .play .slot { animation: doorIn .85s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.45s + var(--i) * 100ms); }
 @keyframes doorIn { from { opacity: 0; translate: 70px 0; } }
+.rope { position: absolute; top: 6px; left: calc(var(--gap) / -2); width: calc(100% + var(--gap)); height: 20px; overflow: visible; pointer-events: none; }
+.rope path { fill: none; stroke: var(--rope); stroke-width: 4; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.rope .tw { stroke: var(--rope2); stroke-dasharray: 1.5 5; }
+.slot.first::before, .slot.last::after { content: ""; position: absolute; top: 6px; height: 4px; width: 700px; background: repeating-linear-gradient(90deg, var(--rope) 0 2px, var(--rope2) 2px 6px); border-radius: 2px; }
+.slot.first::before { right: calc(100% + var(--gap) / 2 - 1px); }
+.slot.last::after { left: calc(100% + var(--gap) / 2 - 1px); }
+.hang { position: relative; display: flex; flex-direction: column; align-items: center; perspective: 1000px; transform-origin: 50% -24px; animation: sway calc(6s + var(--i, 0) * .9s) ease-in-out calc(var(--i, 0) * -1.7s) infinite; }
+@keyframes sway { 0%, 100% { transform: rotate(-1.1deg); } 50% { transform: rotate(1.1deg); } }
+.pin { position: absolute; top: -29px; z-index: 4; width: 11px; height: 38px; border-radius: 3px 3px 5px 5px; background: linear-gradient(90deg, #DDB77F, #B98B52); box-shadow: 0 2px 4px rgb(0 0 0 / .28); }
+.pin.l { left: 18%; } .pin.r { right: 18%; }
+.pin::before { content: ""; position: absolute; left: 50%; top: 48%; bottom: 0; width: 1.5px; background: rgb(60 35 15 / .45); }
+.pin::after { content: ""; position: absolute; left: 1px; right: 1px; top: 36%; height: 3px; border-radius: 2px; background: #8E8E8E; }
 .door { position: relative; display: block; width: var(--dw); height: var(--dh); padding: 0; border: 0; background: none; transform-style: preserve-3d; transform: rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
 .room { position: absolute; inset: 0; border-radius: 12px 14px 5px 8px; background: radial-gradient(120% 75% at 50% 100%, #FFF3C7 0%, #F8CD62 55%, #E39F2E 100%); box-shadow: inset 0 0 22px rgb(120 60 0 / .35); }
 .leaf { position: absolute; inset: 0; border-radius: 12px 14px 5px 8px; background-color: var(--c); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0 0 0 -.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); box-shadow: 16px 12px 28px -6px var(--shade), inset 0 0 0 1px rgb(255 255 255 / .07); transform-origin: left center; transition: transform .6s cubic-bezier(.2, .7, .2, 1), filter .5s; }
@@ -168,6 +147,8 @@ main { position: relative; z-index: 1; }
 .slot.opening .door { transform: rotateY(0deg) scale(1.05); }
 .sill { display: block; width: 100%; height: 7px; margin-top: 9px; border-radius: 4px; background: var(--lamp); opacity: calc(.1 + var(--lit, 0) * .9); box-shadow: 0 0 calc(var(--lit, 0) * 22px) calc(var(--lit, 0) * 4px) rgb(247 200 90 / .6); transition: opacity .8s, box-shadow .8s; }
 .who { margin-top: 12px; font: 500 14px/1 var(--sans); letter-spacing: .04em; color: var(--ink2); min-height: 16px; }
+.btn.dl { margin-top: 20px; gap: 9px; text-decoration: none; }
+.btn.dl svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .hallnote { position: relative; z-index: 3; text-align: center; padding: 0 20px 26px; color: var(--ink2); font-size: 15px; }
 
 /* ---------- buttons, dialogs, inputs ---------- */
@@ -205,7 +186,9 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .center p { color: var(--ink2); }
 .center form { width: 100%; text-align: left; margin-top: 14px; }
 .err { color: var(--red); font-weight: 600; margin-top: 12px; }
-#wait .slot { --dw: 120px; --dh: 250px; animation: none; transform: none; }
+#wait .slot { --dw: 120px; --dh: 250px; animation: none; transform: none; padding-top: 0; }
+#wait .rope, #wait .pin, #wait .slot::before, #wait .slot::after { display: none; }
+#wait .hang { animation: none; }
 #wait .note { padding: 10px 6px 8px; }
 #wait .note b { font-size: 19px; }
 #wait .door { transform: none; }
@@ -282,8 +265,8 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   .tools { top: 10px; right: 10px; gap: 8px; }
   .tool { width: 40px; height: 40px; }
   .slot { --dw: 148px; --dh: 318px; }
-  .hall { gap: 34px; padding-inline: calc(50% - 74px); }
-  .hallwrap { --th: 370px; --fl: 84px; min-height: 470px; }
+  .hall { --gap: 34px; padding-inline: calc(50% - 74px); }
+  .mast .dl { margin-top: 18px; }
   .top { padding-right: 70px; }
   .pname { font-size: 22px; }
   #chat { border-inline: 0; }
@@ -329,20 +312,16 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   </section>
 
   <section id="corridor" class="screen" hidden>
-    <div class="scene" aria-hidden="true">
-      <div class="ceiling"></div>
-      <div class="pillar"><div class="psign"><b>Corridor</b><svg viewBox="0 0 22 16"><path d="M1 8h19M13 2l7 6-7 6"/></svg></div></div>
-    </div>
     <header class="mast">
       <h1 class="logo">Corridor</h1><br>
       <p class="tag">talk to people anytime
         <svg viewBox="0 0 300 4" preserveAspectRatio="none" aria-hidden="true"><path d="M2 2 H298"/></svg>
       </p>
       <p class="how">Pick a door. You'll be matched with someone inside for a few minutes of text. Skip anytime.</p>
+      <a class="btn go dl" href="https://unrestdu.in/app" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.500-4.500M12 15l4.500-4.500M5 20h14"/></svg>Download the App</a>
     </header>
     <div class="hallwrap">
       <button class="arrow l" id="prev" aria-label="Scroll doors left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="stage" aria-hidden="true"><div class="train" id="train"></div><div class="floor"></div></div>
       <div class="hall" id="doors" tabindex="0" role="group" aria-label="Doors"></div>
       <button class="arrow r" id="next" aria-label="Scroll doors right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
@@ -462,18 +441,20 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 
   /* One look per door. Colors follow the painted-door style; icons are drawn in the same stroke as the notes. */
   const ICON = {
+    face: '<circle cx="12" cy="12" r="9"/><path d="M8 10.500h2.500M13.500 10.500H16M9 16h6"/>',
     note: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
     moon: '<path d="M20 14.500A8 8 0 1 1 9.500 4a6.500 6.500 0 0 0 10.500 10.500z"/>',
     bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.500c.8.8 1 1.500 1 2.500h6c0-1 .2-1.700 1-2.500A6 6 0 0 0 12 3z"/>',
     case: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
   };
   const LOOK = {
+    bored: { c: '#2F6B63', ink: '#FFF8EA', icon: 'face', rot: -2 },
     music: { c: '#B3202E', ink: '#FFF8EA', icon: 'note', rot: -3 },
     career: { c: '#2F4766', ink: '#FFF8EA', icon: 'case', rot: 3 },
     'late-night': { c: '#5A2D4F', ink: '#FFF8EA', icon: 'moon', rot: -2 },
     suggest: { c: '#7A5C2E', ink: '#FFF8EA', icon: 'bulb', rot: 2 },
   };
-  const ORDER = ['music', 'career', 'late-night'];
+  const ORDER = ['bored', 'music'];
   const look = (id) => LOOK[id] || { c: '#B3202E', ink: '#FFF8EA', icon: 'note', rot: -2 };
 
   const store = {
@@ -562,31 +543,6 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     fetch('audio/ambient.mp3', { method: 'HEAD' }).then((r) => { if (r.ok) { btn.hidden = false; bgm.preload = 'auto'; bgm.load(); } }).catch(() => {});
   })();
 
-  /* ---------- the train: five cars and a nose, drawn once, reused ---------- */
-  (() => {
-    const win = (x, k) => {
-      const pax = k % 4 === 3 ? '' : `<circle class="tp" cx="${x + 46}" cy="${150 + (k % 3) * 6}" r="14"/><path class="tp" d="M${x + 14} 242 v-44 q0-28 32-28 q32 0 32 28 v44z"/>`;
-      return `<g><rect class="tf" x="${x - 7}" y="73" width="106" height="176" rx="22"/><rect x="${x}" y="80" width="92" height="162" rx="16" fill="url(#tg)"/>${pax}</g>`;
-    };
-    let cars = '';
-    for (let c = 0; c < 5; c++) cars += `<use href="#car" x="${c * 560}"/>`;
-    const wins = [30, 150, 322, 442].map((x, i) => win(x, i)).join('');
-    $('#train').innerHTML = `<svg viewBox="0 0 3020 410" preserveAspectRatio="xMaxYMid slice" aria-hidden="true"><defs>
-      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--tglow1)"/><stop offset="1" style="stop-color:var(--tglow2)"/></linearGradient>
-      <symbol id="car" viewBox="0 0 560 410" width="560" height="410">
-        <rect class="tb" width="560" height="410"/><rect class="tt" width="560" height="22"/>
-        <rect class="tr" y="36" width="560" height="14"/><rect class="tr" y="262" width="560" height="58"/><rect class="ts" y="372" width="560" height="38"/>
-        <rect class="tt" x="248" y="60" width="3" height="312"/><rect class="tt" x="309" y="60" width="3" height="312"/>
-        ${wins}
-      </symbol>
-      <symbol id="nose" viewBox="0 0 220 410" width="220" height="410">
-        <path class="tb" d="M0 0H96C170 0 212 46 218 132L222 410H0Z"/><path class="tt" d="M0 0H96C132 0 160 10 180 26L180 22H0Z"/>
-        <path class="tf" d="M60 70H128C168 70 192 96 196 150V240H60Z"/><path d="M70 80H124C158 80 180 102 184 150V236H70Z" fill="url(#tg)" opacity=".5"/>
-        <rect class="tr" y="262" width="222" height="58"/><rect class="tr" y="36" width="170" height="14"/><rect class="ts" y="372" width="222" height="38"/>
-        <circle cx="196" cy="290" r="12" fill="#FFF3C4"/>
-      </symbol></defs>${cars}<use href="#nose" x="2800"/></svg>`;
-  })();
-
   /* ---------- connection ---------- */
   function connect() {
     const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
@@ -631,13 +587,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     const el = document.createElement('div');
     el.className = 'slot'; el.dataset.id = d.id;
     el.style.cssText = `--c:${L.c};--rot:${L.rot}deg;--i:${i}`;
-    el.innerHTML = `<button class="door" aria-label="Open door: ${d.name.replace(/"/g, '')}"><span class="room"></span><span class="leaf"><span class="note"><b></b><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[L.icon]}</svg></span><span class="plate"><i></i></span></span></button><span class="sill"></span><span class="who"></span>`;
+    el.innerHTML = `<svg class="rope" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 2Q50 14 100 2"/><path class="tw" d="M0 2Q50 14 100 2"/></svg><div class="hang"><span class="pin l"></span><span class="pin r"></span><button class="door" aria-label="Open door: ${d.name.replace(/"/g, '')}"><span class="room"></span><span class="leaf"><span class="note"><b></b><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[L.icon]}</svg></span><span class="plate"><i></i></span></span></button><span class="sill"></span><span class="who"></span></div>`;
     el.querySelector('b').textContent = d.name;
     return el;
   }
   function buildDoors() {
     const hall = $('#doors'); hall.innerHTML = '';
-    const list = [...S.doors].sort((a, b) => (ORDER.indexOf(a.id) + 99) % 99 - (ORDER.indexOf(b.id) + 99) % 99);
+    const list = ORDER.map(doorOf).filter(Boolean);
     list.forEach((d, i) => {
       const el = slotEl(d, i);
       el.querySelector('.door').onclick = () => openJoin(d, el);
@@ -653,13 +609,13 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       $('#sugDlg').addEventListener('close', () => sg.classList.remove('opening'), { once: true });
     };
     hall.appendChild(sg);
+    hall.firstElementChild.classList.add('first'); hall.lastElementChild.classList.add('last');
     paintCounts();
   }
   /* Display counts: always even numbers that follow the time of day. Real count wins when it is higher. */
   const CURVE = {
-    'late-night': [24,24,22,18,12,6,2,2,2,2,2,2,2,2,2,2,2,2,4,6,10,14,20,24],
+    bored:        [14,12,10,8,6,2,2,2,2,2,4,4,6,6,6,8,8,10,12,14,16,18,18,16],
     music:        [6,4,4,2,2,2,2,4,4,4,4,4,6,6,6,6,8,8,10,12,12,12,10,8],
-    career:       [2,2,2,2,2,2,2,4,4,6,8,10,10,10,12,10,8,8,6,6,6,4,4,2],
   };
   function shownCount(id) {
     const real = S.counts[id] || 0, curve = CURVE[id];
@@ -689,9 +645,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       const r = s.getBoundingClientRect();
       const d = Math.max(-1.3, Math.min(1.3, ((r.left + r.width / 2) - cx) / (hr.width / 2)));
       s.querySelector('.door').style.setProperty('--ry', (d * -17).toFixed(1) + 'deg');
-      s.style.setProperty('--ty', (Math.abs(d) * 10).toFixed(1) + 'px');
     }
-    $('#corridor').style.setProperty('--sx', hall.scrollLeft);
   }
   const queueTilt = () => { if (!raf) raf = requestAnimationFrame(tilt); };
   $('#doors').addEventListener('scroll', queueTilt, { passive: true });
@@ -735,7 +689,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     S.door = doorId; show('wait');
     const d = doorOf(doorId), wd = $('#waitDoor'), L = look(doorId);
     const el = slotEl(d, 0); wd.style.cssText = el.style.cssText; wd.innerHTML = el.innerHTML;
-    $('#waitName').textContent = 'Knocking on ' + d.name.toLowerCase();
+    $('#waitName').textContent = 'Knocking on ' + d.name;
     const card = $('#quizCard');
     card.style.setProperty('--c', L.c); card.style.setProperty('--cink', L.ink);
     card.hidden = true;
