@@ -147,9 +147,19 @@ main { position: relative; z-index: 1; }
 .slot.opening .door { transform: rotateY(0deg) scale(1.05); }
 .sill { display: block; width: 100%; height: 7px; margin-top: 9px; border-radius: 4px; background: var(--lamp); opacity: calc(.1 + var(--lit, 0) * .9); box-shadow: 0 0 calc(var(--lit, 0) * 22px) calc(var(--lit, 0) * 4px) rgb(247 200 90 / .6); transition: opacity .8s, box-shadow .8s; }
 .who { margin-top: 12px; font: 500 14px/1 var(--sans); letter-spacing: .04em; color: var(--ink2); min-height: 16px; }
-.btn.dl { margin-top: 20px; gap: 9px; text-decoration: none; }
+.cta { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.btn.dl { gap: 9px; text-decoration: none; }
 .btn.dl svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .hallnote { position: relative; z-index: 3; text-align: center; padding: 0 20px 26px; color: var(--ink2); font-size: 15px; }
+
+/* ---------- feedback button (animated) ---------- */
+.btn.fb { position: relative; overflow: hidden; gap: 9px; background: var(--lamp); border-color: var(--ink); color: #2B211B; animation: fbPulse 2.6s ease-out infinite; }
+.btn.fb:hover { transform: translateY(-2px) scale(1.04); }
+.btn.fb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transform-origin: 50% 90%; animation: fbWiggle 3.4s ease-in-out infinite; }
+.btn.fb::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgb(255 255 255 / .7), transparent); transform: skewX(-18deg); animation: fbShine 3.4s ease-in-out infinite; pointer-events: none; }
+@keyframes fbPulse { 0% { box-shadow: 0 0 0 0 rgb(247 200 90 / .7); } 70%, 100% { box-shadow: 0 0 0 14px rgb(247 200 90 / 0); } }
+@keyframes fbShine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+@keyframes fbWiggle { 0%, 60%, 100% { transform: rotate(0); } 66% { transform: rotate(-14deg); } 72% { transform: rotate(12deg); } 78% { transform: rotate(-8deg); } 84% { transform: rotate(0); } }
 
 /* ---------- buttons, dialogs, inputs ---------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 24px; border-radius: 999px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 600 15px/1 var(--sans); letter-spacing: .01em; transition: transform .2s, background-color .3s; }
@@ -172,6 +182,10 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
 .favs { display: grid; gap: 8px; margin-top: 10px; }
 .favhint { margin-top: 14px; font: 600 15px var(--sans); color: var(--ink); }
 .favsub { font-size: 14px; margin-bottom: 2px; }
+.fq { margin-top: 18px; font: 600 17px/1.25 var(--sans); color: var(--ink); }
+#fbDlg .reasons { margin-top: 10px; }
+#fbDlg .reasons label:has(input:checked) { border-color: var(--ink); background: var(--paper2); }
+#fbOther { margin-top: 2px; }
 .m.fav { max-width: 86%; padding: 12px 16px; border-radius: 16px; }
 .m.fav b { display: block; margin-bottom: 6px; font: 600 11.5px var(--sans); letter-spacing: .09em; text-transform: uppercase; opacity: .78; }
 .m.fav ol { margin: 0; padding-left: 20px; }
@@ -266,7 +280,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   .tool { width: 40px; height: 40px; }
   .slot { --dw: 148px; --dh: 318px; }
   .hall { --gap: 34px; padding-inline: calc(50% - 74px); }
-  .mast .dl { margin-top: 18px; }
+  .cta { margin-top: 18px; }
   .top { padding-right: 70px; }
   .pname { font-size: 22px; }
   #chat { border-inline: 0; }
@@ -318,7 +332,10 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
         <svg viewBox="0 0 300 4" preserveAspectRatio="none" aria-hidden="true"><path d="M2 2 H298"/></svg>
       </p>
       <p class="how">Pick a door. You'll be matched with someone inside for a few minutes of text. Skip anytime.</p>
-      <a class="btn go dl" href="https://unrestdu.in/app" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.500-4.500M12 15l4.500-4.500M5 20h14"/></svg>Download the App</a>
+      <div class="cta">
+        <a class="btn go dl" href="https://unrestdu.in/app" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4.500-4.500M12 15l4.500-4.500M5 20h14"/></svg>Download the App</a>
+        <button class="btn fb" id="fbBtn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5z"/><path d="M8.500 10.500h.01M12 10.500h.01M15.500 10.500h.01"/></svg>Feedback</button>
+      </div>
     </header>
     <div class="hallwrap">
       <button class="arrow l" id="prev" aria-label="Scroll doors left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -431,12 +448,35 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   </form>
 </dialog>
 
+<dialog id="fbDlg">
+  <form method="dialog" id="fbForm">
+    <h2>Quick feedback</h2>
+    <p>Two questions. Takes 10 seconds.</p>
+    <p class="fq">1. First thoughts?</p>
+    <div class="reasons">
+      <label><input type="radio" name="fbThought" value="I like the concept">I like the concept</label>
+      <label><input type="radio" name="fbThought" value="I don't like the concept">I don't like the concept</label>
+    </div>
+    <p class="fq">2. Suggestions? <span style="font-weight:400;color:var(--ink2);font-size:14px">(pick any)</span></p>
+    <div class="reasons">
+      <label><input type="checkbox" name="fbSug" value="Increase users">Increase users</label>
+      <label><input type="checkbox" name="fbSug" value="Increase doors">Increase doors</label>
+      <label><input type="checkbox" name="fbSug" value="Increase activities within doors">Increase activities within doors</label>
+      <label><input type="checkbox" name="fbSug" value="Anything else" id="fbElse">Anything else</label>
+      <input type="text" id="fbOther" maxlength="200" placeholder="Tell us what" aria-label="Anything else" hidden>
+    </div>
+    <div class="btns"><button class="btn go" id="fbGo" value="go" disabled>Send</button><button class="btn quiet" value="cancel" formnovalidate>Maybe later</button></div>
+  </form>
+</dialog>
+
 <div id="toast" hidden></div>
 
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const S = { favs: [], ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false, kpOff: false };
+  // Feedback goes to the Google Sheet through a small Apps Script web app. Paste its "/exec" URL here (setup steps are in the chat).
+  const FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbxchYsK7o_3gTV9DI_ZV7hYKeEj2abXlE1R7S-9Wqx0S1Gn8swsz_n351UGUXj_h5RO/exec';
+  const S = { favs: [], joined: false, fbShown: false, ws: null, doors: [], counts: {}, cfg: { roundSec: 180, maxLen: 300 }, door: null, partner: '', deadline: 0, total: 1, voted: false, theirVote: false, ended: false, dead: false, pending: null, waitTimer: null, played: false, actPicked: false, actHide: 0, quizPicked: false, kpOff: false };
   const LABELS = { harassment: 'Harassment or bullying', sexual: 'Sexual content', hate: 'Hate speech', spam: 'Spam or ads', minor: 'Seems underage', other: 'Something else' };
 
   /* One look per door. Colors follow the painted-door style; icons are drawn in the same stroke as the notes. */
@@ -480,6 +520,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
     if (id === 'corridor') {
       if (!S.played) { S.played = true; $('#corridor').classList.add('play'); }
       requestAnimationFrame(tilt);
+      maybeFeedback();
     }
   }
   function toast(t, ms = 3500) {
@@ -678,6 +719,7 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
       const h = $('#handleIn').value.trim() || randName();
       store.set('corridor.handle', h);
       S.door = S.pending.id;
+      S.joined = true;
       S.favs = S.door === 'music' ? ['#fav1', '#fav2', '#fav3'].map((q) => $(q).value.replace(/[·|]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40)).filter(Boolean) : [];
       if (S.door === 'music') store.set('corridor.favs', JSON.stringify(S.favs));
       tx({ t: 'join', door: S.door, handle: h });
@@ -883,6 +925,41 @@ ul.rules { margin: 10px 0 0; padding-left: 20px; color: var(--ink2); line-height
   $('#btnReport').onclick = openReport; $('#btnReport2').onclick = openReport;
   $('#repForm').addEventListener('submit', (e) => {
     if (e.submitter && e.submitter.value === 'go') tx({ t: 'report', reason: (document.querySelector('input[name=reason]:checked') || {}).value || 'other', note: $('#repNote').value });
+  });
+
+  /* ---------- feedback ---------- */
+  // Pops up once, after someone has knocked on a door and come back to the corridor. The Feedback button opens it any time.
+  function maybeFeedback() {
+    if (!S.joined || S.fbShown || store.get('corridor.fb') === '1') return;
+    S.fbShown = true;
+    setTimeout(() => { if (!$('#corridor').hidden && !document.querySelector('dialog[open]')) openFeedback(); }, 900);
+  }
+  function openFeedback() {
+    $('#fbForm').reset();
+    $('#fbOther').hidden = true;
+    $('#fbGo').disabled = true;
+    $('#fbDlg').showModal();
+  }
+  $('#fbBtn').onclick = openFeedback;
+  $('#fbForm').addEventListener('change', (e) => {
+    if (e.target.name === 'fbThought') $('#fbGo').disabled = false;
+    if (e.target.id === 'fbElse') {
+      $('#fbOther').hidden = !e.target.checked;
+      if (e.target.checked) $('#fbOther').focus();
+    }
+  });
+  $('#fbForm').addEventListener('submit', (e) => {
+    if (!e.submitter || e.submitter.value !== 'go') return;
+    const thought = (document.querySelector('input[name=fbThought]:checked') || {}).value;
+    if (!thought) return;
+    const sug = [...document.querySelectorAll('input[name=fbSug]:checked')].map((x) => x.value);
+    const other = sug.includes('Anything else') ? $('#fbOther').value.replace(/\s+/g, ' ').trim().slice(0, 200) : '';
+    const body = { ts: Date.now(), clientId, thought, suggestions: sug, other, door: S.door || '' };
+    store.set('corridor.fb', '1');
+    if (FEEDBACK_URL) {
+      try { fetch(FEEDBACK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) }).catch(() => {}); } catch {}
+    }
+    toast('Thanks! That really helps.', 4000);
   });
 
   /* ---------- suggest a door + 15s keep-talking prompt ---------- */
