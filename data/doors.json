@@ -13,6 +13,18 @@
         { "q": "Which moon phase comes right after a full moon?", "options": ["Waxing gibbous", "Waning gibbous", "First quarter", "New moon"], "answer": 1, "fact": "After full, the moon starts shrinking: waning gibbous." }
       ] }
     ] },
+  {
+  "id": "bored",
+  "name": "Bored",
+  "line": "Nothing to do? Same. Let's talk about nothing",
+  "hue": 200,
+  "prompts": [
+    "What are you avoiding doing right now?",
+    "Most useless thing you know how to do?",
+    "What did you do the last time you were truly bored?",
+    "Pitch me a plan for the next hour. Go."
+  ]
+}
   { "id": "music", "name": "Music", "line": "Playlists, gigs, one song on repeat", "hue": 340,
     "prompts": ["What's on repeat this week?", "Last gig or fest you went to?", "A song you'd defend to anyone?", "Which artist should everyone hear once?"],
     "activities": [
